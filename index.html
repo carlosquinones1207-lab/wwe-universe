@@ -1,20 +1,2682 @@
-WWE 2K26
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WWE 2K26 — Universe Mode</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════ */
+:root {
+  --black:    #080808;
+  --dark:     #101010;
+  --card:     #181818;
+  --card2:    #1e1e1e;
+  --border:   #282828;
+  --border2:  #333;
+  --raw:      #cc0000;
+  --raw-glow: rgba(204,0,0,0.15);
+  --raw-dim:  #3d0000;
+  --sd:       #0055cc;
+  --sd-glow:  rgba(0,85,204,0.15);
+  --sd-dim:   #001a40;
+  --roh:      #c8a000;
+  --roh-glow: rgba(200,160,0,0.15);
+  --roh-dim:  #3d3000;
+  --text:     #e8e8e8;
+  --muted:    #777;
+  --muted2:   #555;
+  --face:     #22c55e;
+  --heel:     #ef4444;
+  --tweener:  #f59e0b;
+  --win:      #22c55e;
+  --loss:     #ef4444;
+  --star:     #f59e0b;
+  --radius:   4px;
+}
 
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
 
-WWE 2K26
-DASHBOARD SHOWS ROSTER EPISODES TOURNAMENTS PPV CALENDAR STORYLINES DRAFT TOOL
-WWE 2K26
-CUSTOM UNIVERSE MODE
+body {
+  background: var(--black);
+  color: var(--text);
+  font-family: 'Barlow', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
 
-LOADING...
-RAW
-GM: Vince McMahon
-Dark / Ruthless Aggression
-SMACKDOWN
-GM: Theodore Long
-Athletic / Sport-Focused
-RING OF HONOR
-Commissioner: Jim Cornette
-Honor / Technical Prestige
-RAW CHAMPIONSHIPS SMACKDOWN CHAMPIONSHIPS ROH CHAMPIONSHIPS RECENT EPISODES
+/* ═══════════════════════════════════════
+   LOADING SCREEN
+═══════════════════════════════════════ */
+#loading-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--black);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  gap: 20px;
+}
+#loading-screen h1 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 48px;
+  letter-spacing: 4px;
+  color: #fff;
+}
+#loading-screen h1 span { color: var(--raw); }
+.loader {
+  width: 40px; height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--raw);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
+/* ═══════════════════════════════════════
+   TOP NAV
+═══════════════════════════════════════ */
+#topnav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  background: rgba(8,8,8,0.97);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  z-index: 1000;
+  padding: 0 20px;
+  gap: 0;
+}
+.nav-logo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 20px;
+  letter-spacing: 2px;
+  color: #fff;
+  margin-right: 24px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.nav-logo span { color: var(--raw); }
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex: 1;
+}
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-link {
+  color: var(--muted);
+  text-decoration: none;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 0 16px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  border-bottom: 3px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  cursor: pointer;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  flex-shrink: 0;
+}
+.nav-link:hover { color: #fff; }
+.nav-link.active { color: #fff; border-bottom-color: var(--raw); }
+
+/* ═══════════════════════════════════════
+   MAIN LAYOUT
+═══════════════════════════════════════ */
+#app {
+  margin-top: 56px;
+  min-height: calc(100vh - 56px);
+}
+
+.page { display: none; }
+.page.active { display: block; }
+
+.container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 32px 20px;
+}
+
+/* ═══════════════════════════════════════
+   SHARED COMPONENTS
+═══════════════════════════════════════ */
+.section-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.brand-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+}
+.pill-raw  { background: var(--raw-dim);  color: var(--raw); }
+.pill-sd   { background: var(--sd-dim);   color: var(--sd);  }
+.pill-roh  { background: var(--roh-dim);  color: var(--roh); }
+.pill-all  { background: #222; color: #aaa; }
+
+.align-face    { color: var(--face); }
+.align-heel    { color: var(--heel); }
+.align-tweener { color: var(--tweener); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-decoration: none;
+}
+.btn-primary { background: var(--raw); color: #fff; }
+.btn-primary:hover { background: #aa0000; }
+.btn-secondary { background: var(--card2); color: var(--text); border: 1px solid var(--border2); }
+.btn-secondary:hover { background: #252525; }
+.btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+.btn-ghost:hover { color: #fff; border-color: var(--border2); }
+.btn-sd  { background: var(--sd);  color: #fff; }
+.btn-roh { background: var(--roh); color: #000; }
+.btn-sm { padding: 6px 14px; font-size: 11px; }
+.btn-danger { background: var(--heel); color: #fff; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.form-group { margin-bottom: 16px; }
+.form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 10px 12px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 14px;
+  border-radius: var(--radius);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: var(--raw);
+}
+.form-select option { background: var(--card2); }
+.form-textarea { resize: vertical; min-height: 80px; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-radius: 2px;
+}
+.badge-face    { background: rgba(34,197,94,0.15);  color: var(--face); }
+.badge-heel    { background: rgba(239,68,68,0.15);  color: var(--heel); }
+.badge-tweener { background: rgba(245,158,11,0.15); color: var(--tweener); }
+.badge-active  { background: rgba(34,197,94,0.15);  color: var(--face); }
+.badge-vacant  { background: rgba(119,119,119,0.15);color: var(--muted); }
+.badge-champ   { background: rgba(200,160,0,0.2);   color: var(--roh); }
+
+.star-rating { color: var(--star); font-size: 13px; }
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+.empty-state h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--muted2);
+  margin-bottom: 8px;
+}
+
+/* toast */
+#toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 12px 24px;
+  font-size: 13px;
+  border-radius: var(--radius);
+  z-index: 9999;
+  transition: transform 0.3s;
+  white-space: nowrap;
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+#toast.success { border-color: var(--face); color: var(--face); }
+#toast.error   { border-color: var(--heel); color: var(--heel); }
+
+/* modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 2000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--dark);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 18px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+.modal-close:hover { color: #fff; }
+.modal-body { padding: 24px; }
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* ═══════════════════════════════════════
+   DASHBOARD
+═══════════════════════════════════════ */
+.dash-hero {
+  background: linear-gradient(160deg, #0d0d0d 0%, #1a0000 40%, #0d0508 70%, #0d0d0d 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 48px 20px 40px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.dash-hero::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(ellipse at center, rgba(204,0,0,0.04) 0%, transparent 60%);
+  pointer-events: none;
+}
+.dash-hero-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: clamp(48px, 10vw, 88px);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  line-height: 0.9;
+  color: #fff;
+}
+.dash-hero-title .accent { color: var(--raw); }
+.dash-hero-sub {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 10px;
+}
+.dash-hero-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border2);
+  padding: 8px 20px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.dash-hero-state .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--raw);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.brand-cards {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  border-bottom: 1px solid var(--border);
+}
+.brand-card {
+  padding: 24px 20px;
+  border-right: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+  text-decoration: none;
+  display: block;
+}
+.brand-card:last-child { border-right: none; }
+.brand-card:hover { background: rgba(255,255,255,0.02); }
+.brand-card-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 28px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+.raw-color  { color: var(--raw); }
+.sd-color   { color: var(--sd);  }
+.roh-color  { color: var(--roh); }
+.brand-card-gm { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.brand-card-identity { font-size: 11px; color: var(--muted2); margin-top: 4px; font-style: italic; }
+
+.champ-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px,1fr));
+  gap: 10px;
+}
+.champ-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.champ-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+}
+.champ-card.raw::before   { background: var(--raw); }
+.champ-card.smackdown::before { background: var(--sd); }
+.champ-card.roh::before   { background: var(--roh); }
+.champ-card-label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.champ-card-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  color: #fff;
+}
+.champ-card-vacant {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--muted);
+  font-style: italic;
+}
+.champ-card-meta { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+/* ═══════════════════════════════════════
+   SHOWS PAGE
+═══════════════════════════════════════ */
+.shows-grid {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.show-card {
+  padding: 32px 24px;
+  border-right: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.show-card:last-child { border-right: none; }
+.show-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+}
+.show-card.raw::after   { background: var(--raw); }
+.show-card.sd::after    { background: var(--sd); }
+.show-card.roh::after   { background: var(--roh); }
+.show-card:hover { background: var(--card2); }
+.show-card-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 36px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.show-card-gm { font-size: 13px; color: var(--muted); margin-top: 8px; }
+.show-card-identity {
+  font-size: 12px;
+  color: var(--muted2);
+  margin-top: 4px;
+  font-style: italic;
+}
+.show-card-stat {
+  margin-top: 20px;
+  display: flex;
+  gap: 20px;
+}
+.show-stat-item { }
+.show-stat-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 28px;
+  color: #fff;
+}
+.show-stat-label { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+
+/* ═══════════════════════════════════════
+   ROSTER PAGE (AEW INSPIRED)
+═══════════════════════════════════════ */
+.roster-filter-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.filter-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 8px 16px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: all 0.15s;
+}
+.filter-btn:hover { background: var(--card2); color: var(--text); }
+.filter-btn.active.raw { background: var(--raw-dim); color: var(--raw); border-color: var(--raw); }
+.filter-btn.active.sd  { background: var(--sd-dim);  color: var(--sd);  border-color: var(--sd); }
+.filter-btn.active.roh { background: var(--roh-dim); color: var(--roh); border-color: var(--roh); }
+.filter-btn.active.all { background: #222; color: #fff; border-color: #555; }
+
+.champions-row {
+  margin-bottom: 32px;
+}
+.champion-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px,1fr));
+  gap: 10px;
+}
+.champion-entry {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  position: relative;
+}
+.champion-entry::before {
+  content: '🏆';
+  position: absolute;
+  top: 12px; right: 12px;
+  font-size: 14px;
+  opacity: 0.5;
+}
+.champion-entry-title {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--roh);
+  margin-bottom: 4px;
+}
+.champion-entry-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  color: #fff;
+}
+.champion-entry-belt {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.wrestler-list { display: flex; flex-direction: column; gap: 2px; }
+.wrestler-row {
+  display: grid;
+  grid-template-columns: 1fr 120px 140px 100px;
+  align-items: center;
+  gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
+}
+.wrestler-row:hover { background: var(--card2); border-color: var(--border2); }
+.wrestler-row-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: #fff;
+}
+.wrestler-row-faction {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 1px;
+}
+.wrestler-row-div {
+  font-size: 12px;
+  color: var(--muted);
+}
+.wrestler-row-record {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  color: var(--muted);
+}
+.wrestler-row-record .w { color: var(--win); }
+.wrestler-row-record .l { color: var(--loss); }
+
+/* ═══════════════════════════════════════
+   SUPERSTAR PROFILE
+═══════════════════════════════════════ */
+.profile-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+  margin-bottom: 24px;
+  background: none;
+  border: none;
+  padding: 0;
+  transition: color 0.15s;
+}
+.profile-back:hover { color: #fff; }
+
+.profile-hero {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+.profile-hero-bar {
+  height: 4px;
+}
+.profile-hero-content {
+  padding: 28px 28px 24px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
+  align-items: start;
+}
+.profile-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 42px;
+  letter-spacing: 2px;
+  color: #fff;
+  line-height: 1;
+}
+.profile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  align-items: center;
+}
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  border-top: 1px solid var(--border);
+}
+.profile-stat {
+  padding: 16px;
+  border-right: 1px solid var(--border);
+  text-align: center;
+}
+.profile-stat:last-child { border-right: none; }
+.profile-stat-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 28px;
+}
+.profile-stat-label {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 16px;
+}
+.profile-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.profile-card-head {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.profile-card-body { padding: 16px; }
+.profile-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.profile-info-row:last-child { border-bottom: none; }
+.profile-info-label { color: var(--muted); }
+.profile-info-value { font-weight: 500; }
+
+.match-history-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.match-history-row:last-child { border-bottom: none; }
+.match-result-badge {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.result-w { color: var(--win); }
+.result-l { color: var(--loss); }
+.result-d { color: var(--tweener); }
+.match-history-opp { flex: 1; color: var(--text); }
+.match-history-ep  { color: var(--muted); }
+.match-history-rating { color: var(--star); font-family: 'Barlow Condensed',sans-serif; font-weight:700; }
+
+/* ═══════════════════════════════════════
+   EPISODE LOGGER
+═══════════════════════════════════════ */
+.logger-header {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.logger-header h2 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 22px;
+  letter-spacing: 1px;
+}
+.episode-list { display: flex; flex-direction: column; gap: 10px; }
+.episode-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.episode-card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.episode-card-header:hover { background: var(--card2); }
+.episode-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 28px;
+  color: #fff;
+  width: 40px;
+  flex-shrink: 0;
+}
+.episode-info { flex: 1; }
+.episode-brand {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+.episode-summary { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.episode-rating {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 22px;
+  color: var(--star);
+}
+.episode-body { display: none; padding: 0 18px 18px; }
+.episode-body.open { display: block; }
+
+.match-log-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 12px; }
+.match-log-table th {
+  text-align: left;
+  padding: 7px 8px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.match-log-table td { padding: 8px; border-bottom: 1px solid #1a1a1a; vertical-align: top; }
+.match-log-table tr:last-child td { border-bottom: none; }
+.match-winner { color: var(--win); font-weight: 600; }
+.match-note-text { color: var(--muted); font-size: 11px; margin-top: 2px; font-style: italic; }
+
+/* match entry form rows */
+.match-entry-row {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 10px;
+  position: relative;
+}
+.match-entry-row .match-num {
+  position: absolute;
+  top: 14px; left: 14px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 20px;
+  color: var(--muted2);
+  width: 24px;
+}
+.match-entry-fields { margin-left: 36px; }
+.match-fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.match-fields-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.remove-match-btn {
+  position: absolute;
+  top: 10px; right: 10px;
+  background: none;
+  border: none;
+  color: var(--muted2);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  transition: color 0.15s;
+}
+.remove-match-btn:hover { color: var(--heel); }
+
+/* ═══════════════════════════════════════
+   TOURNAMENTS
+═══════════════════════════════════════ */
+.tourney-section { margin-bottom: 40px; }
+.tourney-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.blocks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+  gap: 10px;
+}
+.block-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.block-head {
+  padding: 8px 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.block-head.raw { background: var(--raw-dim); color: var(--raw); }
+.block-head.sd  { background: var(--sd-dim);  color: var(--sd);  }
+.block-head.roh { background: var(--roh-dim); color: var(--roh); }
+.block-table { width: 100%; border-collapse: collapse; }
+.block-table th { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+.block-table th:not(:first-child) { text-align: center; }
+.block-table td { padding: 7px 10px; font-size: 12px; border-bottom: 1px solid #1a1a1a; }
+.block-table td:not(:first-child) { text-align: center; }
+.block-table tr:last-child td { border-bottom: none; }
+.block-leader { font-weight: 600; color: #fff; }
+.block-pts {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+}
+.pts-raw { color: var(--raw); }
+.pts-sd  { color: var(--sd);  }
+.pts-roh { color: var(--roh); }
+.block-elim { opacity: 0.35; text-decoration: line-through; }
+
+.bracket-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.bracket-row {
+  display: flex;
+  align-items: center;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  font-size: 13px;
+}
+.bracket-row:last-child { border-bottom: none; }
+.bracket-round { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); width: 80px; flex-shrink: 0; }
+.bracket-teams { flex: 1; }
+.bracket-winner { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; color: var(--win); }
+.bracket-winner.tbd { color: var(--muted); font-weight: 400; font-style: italic; font-family: 'Barlow', sans-serif; font-size: 12px; }
+
+/* ═══════════════════════════════════════
+   PPV CALENDAR
+═══════════════════════════════════════ */
+.ppv-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: 12px; }
+.ppv-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.ppv-card:hover { border-color: var(--border2); }
+.ppv-card-top { height: 3px; }
+.ppv-card-top.raw   { background: var(--raw); }
+.ppv-card-top.sd    { background: var(--sd);  }
+.ppv-card-top.roh   { background: var(--roh); }
+.ppv-card-top.all   { background: linear-gradient(90deg,var(--raw),var(--sd),var(--roh)); }
+.ppv-card-top.special { background: #555; }
+.ppv-card-body { padding: 16px; }
+.ppv-month { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.ppv-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 22px; letter-spacing: 1px; text-transform: uppercase; color: #fff; }
+.ppv-brand-line { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.ppv-main { font-size: 12px; color: #aaa; margin-top: 8px; }
+.ppv-status {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 3px 10px;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 2px;
+}
+.ppv-status.upcoming { border-color: var(--roh); color: var(--roh); }
+.ppv-status.completed { border-color: var(--win); color: var(--win); }
+.ppv-note { font-size: 11px; color: var(--muted2); margin-top: 6px; font-style: italic; }
+
+/* ═══════════════════════════════════════
+   STORYLINES
+═══════════════════════════════════════ */
+.storyline-list { display: flex; flex-direction: column; gap: 10px; }
+.storyline-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: center;
+}
+.storyline-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  color: #fff;
+}
+.storyline-superstars { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.storyline-desc { font-size: 12px; color: #aaa; margin-top: 6px; line-height: 1.6; }
+.storyline-status-active  { color: var(--win); }
+.storyline-status-concluded { color: var(--muted); }
+
+/* ═══════════════════════════════════════
+   DRAFT TOOL
+═══════════════════════════════════════ */
+.draft-setup {
+  max-width: 600px;
+  margin: 0 auto;
+}
+.draft-board {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.draft-pool-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  position: sticky;
+  top: 72px;
+  max-height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
+}
+.draft-pool-head {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.draft-pool-list {
+  overflow-y: auto;
+  flex: 1;
+}
+.draft-pool-item {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.1s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.draft-pool-item:hover { background: var(--card2); }
+.draft-pool-item.drafted { opacity: 0.3; pointer-events: none; text-decoration: line-through; }
+.draft-brand-columns {
+  display: grid;
+  gap: 12px;
+}
+.draft-brand-col {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.draft-brand-head {
+  padding: 12px 16px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 16px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.draft-brand-head.raw { color: var(--raw); }
+.draft-brand-head.sd  { color: var(--sd);  }
+.draft-brand-head.roh { color: var(--roh); }
+.draft-pick-item {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.draft-pick-item:last-child { border-bottom: none; }
+.draft-pick-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--muted);
+  width: 24px;
+}
+.draft-current-pick {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.draft-current-brand {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 28px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.draft-current-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════ */
+@media (max-width: 768px) {
+  .brand-cards { grid-template-columns: 1fr; }
+  .brand-card { border-right: none; border-bottom: 1px solid var(--border); }
+  .shows-grid { grid-template-columns: 1fr; }
+  .show-card { border-right: none; border-bottom: 1px solid var(--border); }
+  .profile-grid { grid-template-columns: 1fr; }
+  .profile-stats { grid-template-columns: repeat(2,1fr); }
+  .wrestler-row { grid-template-columns: 1fr auto; }
+  .wrestler-row-div, .wrestler-row-record { display: none; }
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .draft-board { grid-template-columns: 1fr; }
+  .draft-pool-panel { position: static; max-height: 300px; }
+  .profile-hero-content { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading-screen">
+  <h1>WWE <span>2K26</span></h1>
+  <div class="loader"></div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- NAV -->
+<nav id="topnav">
+  <div class="nav-logo">WWE <span>2K26</span></div>
+  <div class="nav-links">
+    <button class="nav-link active" onclick="showPage('dashboard')">Dashboard</button>
+    <button class="nav-link" onclick="showPage('shows')">Shows</button>
+    <button class="nav-link" onclick="showPage('roster')">Roster</button>
+    <button class="nav-link" onclick="showPage('episodes')">Episodes</button>
+    <button class="nav-link" onclick="showPage('tournaments')">Tournaments</button>
+    <button class="nav-link" onclick="showPage('ppv')">PPV Calendar</button>
+    <button class="nav-link" onclick="showPage('storylines')">Storylines</button>
+    <button class="nav-link" onclick="showPage('draft')">Draft Tool</button>
+  </div>
+</nav>
+
+<div id="app">
+
+<!-- ══════════ DASHBOARD ══════════ -->
+<div id="page-dashboard" class="page active">
+  <div class="dash-hero">
+    <div class="dash-hero-title">WWE <span class="accent">2K26</span></div>
+    <div class="dash-hero-sub">Custom Universe Mode</div>
+    <div class="dash-hero-state">
+      <div class="dot"></div>
+      <span id="dash-state-text">Loading...</span>
+    </div>
+  </div>
+  <div class="brand-cards">
+    <div class="brand-card" onclick="showPage('shows')">
+      <div class="brand-card-name raw-color">RAW</div>
+      <div class="brand-card-gm">GM: Vince McMahon</div>
+      <div class="brand-card-identity">Dark / Ruthless Aggression</div>
+    </div>
+    <div class="brand-card" onclick="showPage('shows')">
+      <div class="brand-card-name sd-color">SmackDown</div>
+      <div class="brand-card-gm">GM: Theodore Long</div>
+      <div class="brand-card-identity">Athletic / Sport-Focused</div>
+    </div>
+    <div class="brand-card" onclick="showPage('shows')">
+      <div class="brand-card-name roh-color">Ring of Honor</div>
+      <div class="brand-card-gm">Commissioner: Jim Cornette</div>
+      <div class="brand-card-identity">Honor / Technical Prestige</div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="section-title">RAW Championships</div>
+    <div class="champ-grid" id="dash-raw-champs"></div>
+    <div class="section-title" style="margin-top:28px">SmackDown Championships</div>
+    <div class="champ-grid" id="dash-sd-champs"></div>
+    <div class="section-title" style="margin-top:28px">ROH Championships</div>
+    <div class="champ-grid" id="dash-roh-champs"></div>
+    <div class="section-title" style="margin-top:28px">Recent Episodes</div>
+    <div id="dash-recent-episodes"></div>
+  </div>
+</div>
+
+<!-- ══════════ SHOWS ══════════ -->
+<div id="page-shows" class="page">
+  <div class="container">
+    <div class="section-title">Shows</div>
+    <div class="shows-grid">
+      <div class="show-card raw" onclick="showRosterFor('raw')">
+        <div class="show-card-name raw-color">RAW</div>
+        <div class="show-card-gm">GM: Vince McMahon</div>
+        <div class="show-card-identity">"Dark / Ruthless Aggression"</div>
+        <div class="show-card-stat">
+          <div class="show-stat-item">
+            <div class="show-stat-num" id="show-raw-count">—</div>
+            <div class="show-stat-label">Superstars</div>
+          </div>
+          <div class="show-stat-item">
+            <div class="show-stat-num">5</div>
+            <div class="show-stat-label">Titles</div>
+          </div>
+          <div class="show-stat-item">
+            <div class="show-stat-num" id="show-raw-eps">—</div>
+            <div class="show-stat-label">Episodes</div>
+          </div>
+        </div>
+      </div>
+      <div class="show-card sd" onclick="showRosterFor('smackdown')">
+        <div class="show-card-name sd-color">SmackDown</div>
+        <div class="show-card-gm">GM: Theodore Long</div>
+        <div class="show-card-identity">"Athletic / Sport-Focused"</div>
+        <div class="show-card-stat">
+          <div class="show-stat-item">
+            <div class="show-stat-num" id="show-sd-count">—</div>
+            <div class="show-stat-label">Superstars</div>
+          </div>
+          <div class="show-stat-item">
+            <div class="show-stat-num">5</div>
+            <div class="show-stat-label">Titles</div>
+          </div>
+          <div class="show-stat-item">
+            <div class="show-stat-num" id="show-sd-eps">—</div>
+            <div class="show-stat-label">Episodes</div>
+          </div>
+        </div>
+      </div>
+      <div class="show-card roh" onclick="showRosterFor('roh')">
+        <div class="show-card-name roh-color">Ring of Honor</div>
+        <div class="show-card-gm">Commissioner: Jim Cornette</div>
+        <div class="show-card-identity">"Honor / Technical Prestige"</div>
+        <div class="show-card-stat">
+          <div class="show-stat-item">
+            <div class="show-stat-num" id="show-roh-count">—</div>
+            <div class="show-stat-label">Superstars</div>
+          </div>
+          <div class="show-stat-item">
+            <div class="show-stat-num">3</div>
+            <div class="show-stat-label">Titles</div>
+          </div>
+          <div class="show-stat-item">
+            <div class="show-stat-num" id="show-roh-eps">—</div>
+            <div class="show-stat-label">Episodes</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ ROSTER ══════════ -->
+<div id="page-roster" class="page">
+  <div class="container">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+      <div class="section-title" style="margin-bottom:0">Roster</div>
+      <button class="btn btn-primary btn-sm" onclick="openAddSuperstarModal()">+ Add Superstar</button>
+    </div>
+    <div class="roster-filter-bar">
+      <button class="filter-btn active all" onclick="filterRoster('all',this)">All Brands</button>
+      <button class="filter-btn raw" onclick="filterRoster('raw',this)">RAW</button>
+      <button class="filter-btn sd"  onclick="filterRoster('smackdown',this)">SmackDown</button>
+      <button class="filter-btn roh" onclick="filterRoster('roh',this)">ROH</button>
+    </div>
+    <div id="roster-champions-section" class="champions-row"></div>
+    <div id="roster-list"></div>
+  </div>
+</div>
+
+<!-- ══════════ SUPERSTAR PROFILE ══════════ -->
+<div id="page-profile" class="page">
+  <div class="container">
+    <button class="profile-back" onclick="showPage('roster')">← Back to Roster</button>
+    <div id="profile-content"></div>
+  </div>
+</div>
+
+<!-- ══════════ EPISODES ══════════ -->
+<div id="page-episodes" class="page">
+  <div class="container">
+    <div class="logger-header">
+      <h2>Episode Log</h2>
+      <button class="btn btn-primary" onclick="openNewEpisodeModal()">+ Log New Episode</button>
+    </div>
+    <div id="episode-list"></div>
+  </div>
+</div>
+
+<!-- ══════════ TOURNAMENTS ══════════ -->
+<div id="page-tournaments" class="page">
+  <div class="container">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+      <div class="section-title" style="margin-bottom:0">Tournaments</div>
+      <button class="btn btn-primary btn-sm" onclick="openNewTournamentModal()">+ New Tournament</button>
+    </div>
+    <div id="tournament-content"></div>
+  </div>
+</div>
+
+<!-- ══════════ PPV CALENDAR ══════════ -->
+<div id="page-ppv" class="page">
+  <div class="container">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+      <div class="section-title" style="margin-bottom:0">PPV Calendar</div>
+      <button class="btn btn-primary btn-sm" onclick="openNewPPVModal()">+ Add Event</button>
+    </div>
+    <div class="ppv-grid" id="ppv-grid"></div>
+  </div>
+</div>
+
+<!-- ══════════ STORYLINES ══════════ -->
+<div id="page-storylines" class="page">
+  <div class="container">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+      <div class="section-title" style="margin-bottom:0">Storylines & Feuds</div>
+      <button class="btn btn-primary btn-sm" onclick="openNewStorylineModal()">+ New Storyline</button>
+    </div>
+    <div id="storyline-list"></div>
+  </div>
+</div>
+
+<!-- ══════════ DRAFT TOOL ══════════ -->
+<div id="page-draft" class="page">
+  <div class="container">
+    <div class="section-title">Draft Tool</div>
+    <div id="draft-content"></div>
+  </div>
+</div>
+
+</div><!-- end #app -->
+
+<!-- ═══════════════════════════════════════
+     MODALS
+═══════════════════════════════════════ -->
+
+<!-- New Episode Modal -->
+<div class="modal-overlay" id="modal-episode">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <div class="modal-title">Log New Episode</div>
+      <button class="modal-close" onclick="closeModal('modal-episode')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid-3">
+        <div class="form-group">
+          <label class="form-label">Episode #</label>
+          <input class="form-input" id="ep-number" type="number" placeholder="7">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Brand</label>
+          <select class="form-select" id="ep-brand">
+            <option value="raw">RAW</option>
+            <option value="smackdown">SmackDown</option>
+            <option value="roh">ROH</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Month</label>
+          <input class="form-input" id="ep-month" type="number" placeholder="2">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Episode Summary</label>
+        <textarea class="form-textarea" id="ep-summary" placeholder="One sentence summary of the night..."></textarea>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="form-label" style="margin:0">Matches</div>
+        <button class="btn btn-ghost btn-sm" onclick="addMatchRow()">+ Add Match</button>
+      </div>
+      <div id="match-rows"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-episode')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEpisode()">Save Episode</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Superstar Modal -->
+<div class="modal-overlay" id="modal-superstar">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Superstar</div>
+      <button class="modal-close" onclick="closeModal('modal-superstar')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Name</label>
+          <input class="form-input" id="ss-name" placeholder="Superstar name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Brand</label>
+          <select class="form-select" id="ss-brand">
+            <option value="raw">RAW</option>
+            <option value="smackdown">SmackDown</option>
+            <option value="roh">ROH</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Division</label>
+          <input class="form-input" id="ss-division" placeholder="Main Event, Mid-Card...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Alignment</label>
+          <select class="form-select" id="ss-alignment">
+            <option value="Face">Face</option>
+            <option value="Heel">Heel</option>
+            <option value="Tweener">Tweener</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date of Birth</label>
+          <input class="form-input" id="ss-birthdate" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Place of Birth</label>
+          <input class="form-input" id="ss-birthplace" placeholder="City, Country">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Faction / Stable</label>
+        <input class="form-input" id="ss-faction" placeholder="Faction name or leave blank">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bio Notes</label>
+        <textarea class="form-textarea" id="ss-bio" placeholder="Character notes, career highlights..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-superstar')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSuperstar()">Add Superstar</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Storyline Modal -->
+<div class="modal-overlay" id="modal-storyline">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">New Storyline</div>
+      <button class="modal-close" onclick="closeModal('modal-storyline')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Storyline Title</label>
+        <input class="form-input" id="sl-title" placeholder="e.g. Reigns vs Triple H — Authority War">
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Brand</label>
+          <select class="form-select" id="sl-brand">
+            <option value="raw">RAW</option>
+            <option value="smackdown">SmackDown</option>
+            <option value="roh">ROH</option>
+            <option value="all">All Brands</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-select" id="sl-status">
+            <option value="active">Active</option>
+            <option value="concluded">Concluded</option>
+            <option value="upcoming">Upcoming</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Superstar 1</label>
+          <input class="form-input" id="sl-s1" placeholder="Name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Superstar 2</label>
+          <input class="form-input" id="sl-s2" placeholder="Name or faction">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-textarea" id="sl-desc" placeholder="What's the story?"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-storyline')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStoryline()">Save Storyline</button>
+    </div>
+  </div>
+</div>
+
+<!-- New PPV Modal -->
+<div class="modal-overlay" id="modal-ppv">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add PPV Event</div>
+      <button class="modal-close" onclick="closeModal('modal-ppv')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Event Name</label>
+          <input class="form-input" id="ppv-name-input" placeholder="WrestleMania">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Month</label>
+          <input class="form-input" id="ppv-month-input" placeholder="April">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Brand</label>
+          <select class="form-select" id="ppv-brand-input">
+            <option value="raw">RAW</option>
+            <option value="sd">SmackDown</option>
+            <option value="roh">ROH</option>
+            <option value="all">All Brands</option>
+            <option value="special">Special</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-select" id="ppv-status-input">
+            <option value="upcoming">Upcoming</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Main Event</label>
+        <input class="form-input" id="ppv-main-input" placeholder="Championship match description">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea class="form-textarea" id="ppv-note-input" placeholder="Event notes..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-ppv')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePPV()">Save Event</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Tournament Modal -->
+<div class="modal-overlay" id="modal-tournament">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">New Tournament</div>
+      <button class="modal-close" onclick="closeModal('modal-tournament')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Tournament Name</label>
+          <input class="form-input" id="t-name" placeholder="e.g. Undisputed Championship Tournament">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Brand</label>
+          <select class="form-select" id="t-brand">
+            <option value="raw">RAW</option>
+            <option value="smackdown">SmackDown</option>
+            <option value="roh">ROH</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Format</label>
+          <select class="form-select" id="t-format">
+            <option value="block">Block (G1 Style)</option>
+            <option value="bracket">Single Elimination Bracket</option>
+            <option value="battle_royal">Battle Royal</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-tournament')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTournament()">Create Tournament</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// SUPABASE INIT
+// ═══════════════════════════════════════
+const SUPABASE_URL = 'https://wzhuumezcoyofhiefixb.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6aHV1bWV6Y295b2ZoaWVmaXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2Mzg3NzQsImV4cCI6MjA5NzIxNDc3NH0.dynPuXFsoo5LS9p5BsMgL3YGbUHlGWKVD4ugx29aJDE';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let allSuperstars = [];
+let allChampionships = [];
+let allEpisodes = [];
+let allMatches = [];
+let allFactions = [];
+let allStorylines = [];
+let allPPVs = [];
+let allTournaments = [];
+let currentRosterFilter = 'all';
+let draftSession = null;
+let matchRowCount = 0;
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-link').forEach(l => {
+    if (l.textContent.toLowerCase().includes(name.replace('-','')) || l.getAttribute('onclick')?.includes(name)) {
+      l.classList.add('active');
+    }
+  });
+  window.scrollTo(0,0);
+}
+
+function showRosterFor(brand) {
+  currentRosterFilter = brand;
+  showPage('roster');
+  setTimeout(() => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    const btn = document.querySelector(`.filter-btn.${brand}`);
+    if (btn) { btn.classList.add('active'); }
+    renderRoster();
+  }, 50);
+}
+
+// ═══════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════
+function toast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + type;
+  setTimeout(() => { t.className = ''; }, 3000);
+}
+
+// ═══════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function openAddSuperstarModal() { openModal('modal-superstar'); }
+function openNewEpisodeModal() {
+  matchRowCount = 0;
+  document.getElementById('match-rows').innerHTML = '';
+  addMatchRow(); addMatchRow(); addMatchRow();
+  openModal('modal-episode');
+}
+function openNewStorylineModal() { openModal('modal-storyline'); }
+function openNewPPVModal() { openModal('modal-ppv'); }
+function openNewTournamentModal() { openModal('modal-tournament'); }
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+// ═══════════════════════════════════════
+// MATCH ROW BUILDER
+// ═══════════════════════════════════════
+function addMatchRow() {
+  matchRowCount++;
+  const n = matchRowCount;
+  const orders = ['Opener','Match 2','Match 3','Match 4','Match 5','Main Event'];
+  const orderVal = orders[n-1] || `Match ${n}`;
+  const el = document.createElement('div');
+  el.className = 'match-entry-row';
+  el.id = `match-row-${n}`;
+  el.innerHTML = `
+    <div class="match-num">${n}</div>
+    <button class="remove-match-btn" onclick="removeMatchRow(${n})">✕</button>
+    <div class="match-entry-fields">
+      <div class="match-fields-grid" style="margin-bottom:8px">
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Participant 1</label>
+          <input class="form-input" id="m${n}-p1" placeholder="Name">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Participant 2</label>
+          <input class="form-input" id="m${n}-p2" placeholder="Name">
+        </div>
+      </div>
+      <div class="match-fields-grid3" style="margin-bottom:8px">
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Winner</label>
+          <input class="form-input" id="m${n}-winner" placeholder="Winner">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Winning Move</label>
+          <input class="form-input" id="m${n}-move" placeholder="Move">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Method</label>
+          <select class="form-select" id="m${n}-method">
+            <option value="PIN">PIN</option>
+            <option value="SUB">Submission</option>
+            <option value="CO">Count Out</option>
+            <option value="DQ">DQ</option>
+            <option value="DRAW">Draw</option>
+          </select>
+        </div>
+      </div>
+      <div class="match-fields-grid3">
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Order</label>
+          <input class="form-input" id="m${n}-order" value="${orderVal}">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Rating (★)</label>
+          <input class="form-input" id="m${n}-rating" type="number" min="0" max="5" step="0.5" placeholder="4.0">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Title Change?</label>
+          <select class="form-select" id="m${n}-tc">
+            <option value="false">No</option>
+            <option value="true">Yes</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:8px;margin-bottom:0">
+        <label class="form-label">Match Note</label>
+        <input class="form-input" id="m${n}-note" placeholder="Optional story note">
+      </div>
+    </div>`;
+  document.getElementById('match-rows').appendChild(el);
+}
+
+function removeMatchRow(n) {
+  const el = document.getElementById(`match-row-${n}`);
+  if (el) el.remove();
+}
+
+// ═══════════════════════════════════════
+// LOAD DATA
+// ═══════════════════════════════════════
+async function loadAll() {
+  const [ss, champs, eps, matches, factions, stories, ppvs, tournaments] = await Promise.all([
+    db.from('superstars').select('*').order('name'),
+    db.from('championships').select('*').order('brand_id'),
+    db.from('episodes').select('*').order('created_at', {ascending: false}),
+    db.from('matches').select('*').order('created_at', {ascending: false}),
+    db.from('factions').select('*'),
+    db.from('storylines').select('*').order('created_at', {ascending: false}),
+    db.from('ppv_events').select('*').order('month_number'),
+    db.from('tournaments').select('*'),
+  ]);
+
+  allSuperstars     = ss.data || [];
+  allChampionships  = champs.data || [];
+  allEpisodes       = eps.data || [];
+  allMatches        = matches.data || [];
+  allFactions       = factions.data || [];
+  allStorylines     = stories.data || [];
+  allPPVs           = ppvs.data || [];
+  allTournaments    = tournaments.data || [];
+
+  const state = await db.from('universe_state').select('*').single();
+  if (state.data) {
+    document.getElementById('dash-state-text').textContent =
+      state.data.current_week + ' — ' + state.data.current_phase;
+  }
+
+  renderDashboard();
+  renderRoster();
+  renderEpisodes();
+  renderPPV();
+  renderStorylines();
+  renderDraftSetup();
+  renderShowStats();
+  await renderTournaments();
+
+  document.getElementById('show-raw-count').textContent = allSuperstars.filter(s=>s.brand_id==='raw').length;
+  document.getElementById('show-sd-count').textContent  = allSuperstars.filter(s=>s.brand_id==='smackdown').length;
+  document.getElementById('show-roh-count').textContent = allSuperstars.filter(s=>s.brand_id==='roh').length;
+  document.getElementById('show-raw-eps').textContent   = allEpisodes.filter(e=>e.brand_id==='raw').length;
+  document.getElementById('show-sd-eps').textContent    = allEpisodes.filter(e=>e.brand_id==='smackdown').length;
+  document.getElementById('show-roh-eps').textContent   = allEpisodes.filter(e=>e.brand_id==='roh').length;
+
+  document.getElementById('loading-screen').style.display = 'none';
+}
+
+function renderShowStats() {}
+
+// ═══════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════
+function renderDashboard() {
+  renderChampGrid('raw',       'dash-raw-champs');
+  renderChampGrid('smackdown', 'dash-sd-champs');
+  renderChampGrid('roh',       'dash-roh-champs');
+
+  const recent = allEpisodes.slice(0,5);
+  const el = document.getElementById('dash-recent-episodes');
+  if (!recent.length) { el.innerHTML = '<div class="empty-state"><h3>No episodes logged yet</h3><p>Go to Episodes to log your first show.</p></div>'; return; }
+  el.innerHTML = recent.map(ep => {
+    const brandLabel = brandName(ep.brand_id);
+    const brandClass = ep.brand_id === 'smackdown' ? 'sd' : ep.brand_id;
+    return `<div class="episode-card" style="margin-bottom:8px">
+      <div class="episode-card-header" style="cursor:default">
+        <div class="episode-num">${ep.episode_number}</div>
+        <div class="episode-info">
+          <div class="episode-brand" style="color:var(--${brandClass === 'sd' ? 'sd' : brandClass})">${brandLabel}</div>
+          <div class="episode-summary">${ep.summary || 'No summary'}</div>
+        </div>
+        ${ep.avg_rating ? `<div class="episode-rating">${ep.avg_rating}★</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderChampGrid(brand, elId) {
+  const champs = allChampionships.filter(c => c.brand_id === brand);
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (!champs.length) { el.innerHTML = '<p style="color:var(--muted);font-size:12px">No championships set up yet.</p>'; return; }
+  el.innerHTML = champs.map(c => `
+    <div class="champ-card ${brand}">
+      <div class="champ-card-label">${c.name}</div>
+      ${c.is_vacant || !c.current_champion_name
+        ? `<div class="champ-card-vacant">Vacant — Tournament Ongoing</div>`
+        : `<div class="champ-card-name">${c.current_champion_name}</div>`}
+      ${c.next_challenger ? `<div class="champ-card-meta">Next: ${c.next_challenger}</div>` : ''}
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════
+// ROSTER
+// ═══════════════════════════════════════
+function filterRoster(brand, btn) {
+  currentRosterFilter = brand;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderRoster();
+}
+
+function renderRoster() {
+  const filtered = currentRosterFilter === 'all'
+    ? allSuperstars
+    : allSuperstars.filter(s => s.brand_id === currentRosterFilter);
+
+  // Champions section
+  const champSection = document.getElementById('roster-champions-section');
+  const champs = allChampionships.filter(c =>
+    !c.is_vacant && c.current_champion_name &&
+    (currentRosterFilter === 'all' || c.brand_id === currentRosterFilter)
+  );
+  if (champs.length) {
+    champSection.innerHTML = `
+      <div class="section-title">Current Champions</div>
+      <div class="champion-strip" style="margin-bottom:28px">
+        ${champs.map(c => `
+          <div class="champion-entry">
+            <div class="champion-entry-title">${c.name}</div>
+            <div class="champion-entry-name">${c.current_champion_name}</div>
+            <div class="champion-entry-belt">${brandName(c.brand_id)}</div>
+          </div>`).join('')}
+      </div>`;
+  } else {
+    champSection.innerHTML = '';
+  }
+
+  // Roster list
+  const el = document.getElementById('roster-list');
+  if (!filtered.length) {
+    el.innerHTML = '<div class="empty-state"><h3>No superstars found</h3><p>Add superstars using the button above.</p></div>';
+    return;
+  }
+  const sorted = [...filtered].sort((a,b) => a.name.localeCompare(b.name));
+  el.innerHTML = `
+    <div class="section-title">${currentRosterFilter === 'all' ? 'All Superstars' : brandName(currentRosterFilter)} (${sorted.length})</div>
+    <div class="wrestler-list">
+      ${sorted.map(s => {
+        const w = s.wins || 0, l = s.losses || 0, d = s.draws || 0;
+        const faction = allFactions.find(f => f.id === s.faction_id);
+        return `<div class="wrestler-row" onclick="showProfile(${s.id})">
+          <div>
+            <div class="wrestler-row-name">${s.name}</div>
+            <div class="wrestler-row-faction">${faction ? faction.name : s.division || '—'}</div>
+          </div>
+          <div class="wrestler-row-div">${s.division || '—'}</div>
+          <div><span class="badge badge-${s.alignment?.toLowerCase()}">${s.alignment}</span></div>
+          <div class="wrestler-row-record">
+            <span class="w">${w}W</span> <span class="l">${l}L</span>${d ? ` ${d}D` : ''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ═══════════════════════════════════════
+// SUPERSTAR PROFILE
+// ═══════════════════════════════════════
+async function showProfile(id) {
+  showPage('profile');
+  const s = allSuperstars.find(x => x.id === id);
+  if (!s) return;
+
+  const faction = allFactions.find(f => f.id === s.faction_id);
+  const brand = s.brand_id;
+  const brandColor = brand === 'raw' ? 'var(--raw)' : brand === 'smackdown' ? 'var(--sd)' : 'var(--roh)';
+
+  // Get last 5 matches for this superstar
+  const myMatches = allMatches.filter(m =>
+    m.participant1?.toLowerCase() === s.name.toLowerCase() ||
+    m.participant2?.toLowerCase() === s.name.toLowerCase()
+  ).slice(0, 5);
+
+  // Get championships held
+  const { data: histData } = await db.from('championship_history')
+    .select('*, championships(name)')
+    .eq('champion_name', s.name);
+
+  const titles = histData || [];
+
+  document.getElementById('profile-content').innerHTML = `
+    <div class="profile-hero">
+      <div class="profile-hero-bar" style="background:${brandColor}"></div>
+      <div class="profile-hero-content">
+        <div>
+          <div class="profile-name">${s.name}</div>
+          <div class="profile-meta">
+            <span class="brand-pill pill-${brand === 'smackdown' ? 'sd' : brand}">${brandName(brand)}</span>
+            <span class="badge badge-${s.alignment?.toLowerCase()}">${s.alignment}</span>
+            ${faction ? `<span style="font-size:12px;color:var(--muted)">${faction.name}</span>` : ''}
+            ${s.status ? `<span class="badge badge-active">${s.status}</span>` : ''}
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="editSuperstar(${s.id})">Edit</button>
+        </div>
+      </div>
+      <div class="profile-stats">
+        <div class="profile-stat">
+          <div class="profile-stat-num" style="color:var(--win)">${s.wins || 0}</div>
+          <div class="profile-stat-label">Wins</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-num" style="color:var(--loss)">${s.losses || 0}</div>
+          <div class="profile-stat-label">Losses</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-num" style="color:var(--tweener)">${s.draws || 0}</div>
+          <div class="profile-stat-label">Draws</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-num" style="color:var(--roh)">${s.title_reigns || 0}</div>
+          <div class="profile-stat-label">Title Reigns</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-grid">
+      <div>
+        <div class="profile-card">
+          <div class="profile-card-head">Superstar Info</div>
+          <div class="profile-card-body">
+            <div class="profile-info-row">
+              <span class="profile-info-label">Division</span>
+              <span class="profile-info-value">${s.division || '—'}</span>
+            </div>
+            <div class="profile-info-row">
+              <span class="profile-info-label">Date of Birth</span>
+              <span class="profile-info-value">${s.birthdate ? new Date(s.birthdate).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) : '—'}</span>
+            </div>
+            <div class="profile-info-row">
+              <span class="profile-info-label">Place of Birth</span>
+              <span class="profile-info-value">${s.birthplace || '—'}</span>
+            </div>
+            <div class="profile-info-row">
+              <span class="profile-info-label">Faction</span>
+              <span class="profile-info-value">${faction ? faction.name : '—'}</span>
+            </div>
+            <div class="profile-info-row">
+              <span class="profile-info-label">PPV Record</span>
+              <span class="profile-info-value">${s.ppv_wins||0}W / ${s.ppv_losses||0}L</span>
+            </div>
+          </div>
+        </div>
+
+        ${s.bio_note ? `
+        <div class="profile-card">
+          <div class="profile-card-head">Bio</div>
+          <div class="profile-card-body">
+            <p style="font-size:13px;color:#ccc;line-height:1.7">${s.bio_note}</p>
+          </div>
+        </div>` : ''}
+
+        <div class="profile-card">
+          <div class="profile-card-head">Last 5 Matches</div>
+          <div class="profile-card-body" style="padding:0 16px">
+            ${myMatches.length ? myMatches.map(m => {
+              const won = m.winner?.toLowerCase() === s.name.toLowerCase();
+              const drew = m.method === 'DRAW';
+              const resultClass = drew ? 'result-d' : won ? 'result-w' : 'result-l';
+              const resultLabel = drew ? 'D' : won ? 'W' : 'L';
+              const opp = m.participant1?.toLowerCase() === s.name.toLowerCase() ? m.participant2 : m.participant1;
+              return `<div class="match-history-row">
+                <div class="match-result-badge ${resultClass}">${resultLabel}</div>
+                <div class="match-history-opp">vs ${opp}</div>
+                <div class="match-history-ep">Ep.${m.episode_id || '?'}</div>
+                ${m.rating ? `<div class="match-history-rating">${m.rating}★</div>` : ''}
+              </div>`;
+            }).join('') : '<p style="color:var(--muted);font-size:12px;padding:12px 0">No matches logged yet.</p>'}
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="profile-card">
+          <div class="profile-card-head">Championship History</div>
+          <div class="profile-card-body">
+            ${titles.length ? titles.map(t => `
+              <div class="profile-info-row">
+                <span class="profile-info-label" style="font-size:11px">${t.championships?.name || '—'}</span>
+                <span class="profile-info-value" style="font-size:12px">${t.defenses || 0} def.</span>
+              </div>`).join('') : '<p style="color:var(--muted);font-size:12px">No titles held yet.</p>'}
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════
+// EPISODES
+// ═══════════════════════════════════════
+function renderEpisodes() {
+  const el = document.getElementById('episode-list');
+  if (!allEpisodes.length) {
+    el.innerHTML = '<div class="empty-state"><h3>No episodes logged yet</h3><p>Hit "Log New Episode" to get started.</p></div>';
+    return;
+  }
+  el.innerHTML = allEpisodes.map((ep, idx) => {
+    const bc = ep.brand_id === 'smackdown' ? 'sd' : ep.brand_id;
+    const epMatches = allMatches.filter(m => m.episode_id === ep.id);
+    return `<div class="episode-card">
+      <div class="episode-card-header" onclick="toggleEpisode('ep-body-${idx}')">
+        <div class="episode-num">${ep.episode_number}</div>
+        <div class="episode-info">
+          <div class="episode-brand" style="color:var(--${bc})">${brandName(ep.brand_id)} — Month ${ep.month_number || '?'}</div>
+          <div class="episode-summary">${ep.summary || 'No summary'}</div>
+        </div>
+        ${ep.avg_rating ? `<div class="episode-rating">${ep.avg_rating}★</div>` : '<div style="color:var(--muted);font-size:12px">—</div>'}
+      </div>
+      <div class="episode-body" id="ep-body-${idx}">
+        ${epMatches.length ? `
+        <table class="match-log-table">
+          <thead><tr><th>Order</th><th>Match</th><th>Winner</th><th>Move / Method</th><th>★</th><th>Note</th></tr></thead>
+          <tbody>
+            ${epMatches.map(m => `<tr>
+              <td style="color:var(--muted)">${m.match_order || '—'}</td>
+              <td>${m.participant1} vs ${m.participant2}</td>
+              <td class="match-winner">${m.winner || '—'}</td>
+              <td style="color:var(--muted)">${m.winning_move || '—'} / ${m.method || '—'}</td>
+              <td style="color:var(--star)">${m.rating || '—'}</td>
+              <td><span class="match-note-text">${m.note || ''}</span></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>` : '<p style="color:var(--muted);font-size:12px;padding:8px 0">No matches logged for this episode.</p>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleEpisode(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+}
+
+// ═══════════════════════════════════════
+// SAVE EPISODE
+// ═══════════════════════════════════════
+async function saveEpisode() {
+  const epNum   = parseInt(document.getElementById('ep-number').value);
+  const brand   = document.getElementById('ep-brand').value;
+  const month   = parseInt(document.getElementById('ep-month').value);
+  const summary = document.getElementById('ep-summary').value;
+
+  if (!epNum || !brand) { toast('Please fill in episode number and brand', 'error'); return; }
+
+  const { data: epData, error: epError } = await db.from('episodes').insert({
+    episode_number: epNum,
+    brand_id: brand,
+    month_number: month || null,
+    summary: summary || null,
+  }).select().single();
+
+  if (epError) { toast('Error saving episode: ' + epError.message, 'error'); return; }
+
+  // Save matches
+  const matchRows = document.querySelectorAll('.match-entry-row');
+  const matchInserts = [];
+  let totalRating = 0, ratingCount = 0;
+
+  for (const row of matchRows) {
+    const n = row.id.replace('match-row-','');
+    const p1 = document.getElementById(`m${n}-p1`)?.value?.trim();
+    const p2 = document.getElementById(`m${n}-p2`)?.value?.trim();
+    if (!p1 || !p2) continue;
+
+    const winner = document.getElementById(`m${n}-winner`)?.value?.trim();
+    const move   = document.getElementById(`m${n}-move`)?.value?.trim();
+    const method = document.getElementById(`m${n}-method`)?.value;
+    const rating = parseFloat(document.getElementById(`m${n}-rating`)?.value);
+    const tc     = document.getElementById(`m${n}-tc`)?.value === 'true';
+    const note   = document.getElementById(`m${n}-note`)?.value?.trim();
+    const order  = document.getElementById(`m${n}-order`)?.value?.trim();
+
+    if (!isNaN(rating)) { totalRating += rating; ratingCount++; }
+
+    matchInserts.push({
+      episode_id: epData.id,
+      match_order: order || null,
+      participant1: p1,
+      participant2: p2,
+      winner: winner || null,
+      winning_move: move || null,
+      method: method || null,
+      rating: !isNaN(rating) ? rating : null,
+      title_change: tc,
+      note: note || null,
+    });
+  }
+
+  if (matchInserts.length) {
+    await db.from('matches').insert(matchInserts);
+
+    // Update W/L records
+    for (const m of matchInserts) {
+      if (m.winner) {
+        const p1Win = m.winner.toLowerCase() === m.participant1.toLowerCase();
+        const isDraw = m.method === 'DRAW';
+
+        const updateSuperstar = async (name, isWinner) => {
+          const ss = allSuperstars.find(s => s.name.toLowerCase() === name.toLowerCase());
+          if (!ss) return;
+          const update = isDraw
+            ? { draws: (ss.draws || 0) + 1 }
+            : isWinner
+              ? { wins: (ss.wins || 0) + 1 }
+              : { losses: (ss.losses || 0) + 1 };
+          await db.from('superstars').update(update).eq('id', ss.id);
+        };
+
+        await updateSuperstar(m.participant1, p1Win && !isDraw);
+        await updateSuperstar(m.participant2, !p1Win && !isDraw);
+      }
+    }
+  }
+
+  // Update avg rating on episode
+  if (ratingCount > 0) {
+    const avg = (totalRating / ratingCount).toFixed(2);
+    await db.from('episodes').update({ avg_rating: avg }).eq('id', epData.id);
+  }
+
+  closeModal('modal-episode');
+  toast('Episode saved!', 'success');
+  await loadAll();
+}
+
+// ═══════════════════════════════════════
+// SAVE SUPERSTAR
+// ═══════════════════════════════════════
+async function saveSuperstar() {
+  const name      = document.getElementById('ss-name').value.trim();
+  const brand     = document.getElementById('ss-brand').value;
+  const division  = document.getElementById('ss-division').value.trim();
+  const alignment = document.getElementById('ss-alignment').value;
+  const birthdate = document.getElementById('ss-birthdate').value;
+  const birthplace= document.getElementById('ss-birthplace').value.trim();
+  const factionName= document.getElementById('ss-faction').value.trim();
+  const bio       = document.getElementById('ss-bio').value.trim();
+
+  if (!name) { toast('Name is required', 'error'); return; }
+
+  let faction_id = null;
+  if (factionName) {
+    let f = allFactions.find(x => x.name.toLowerCase() === factionName.toLowerCase());
+    if (!f) {
+      const { data } = await db.from('factions').insert({ name: factionName, brand_id: brand }).select().single();
+      f = data;
+      if (f) allFactions.push(f);
+    }
+    if (f) faction_id = f.id;
+  }
+
+  const { error } = await db.from('superstars').insert({
+    name, brand_id: brand, division: division || null,
+    alignment, faction_id,
+    birthdate: birthdate || null,
+    birthplace: birthplace || null,
+    bio_note: bio || null,
+  });
+
+  if (error) { toast('Error: ' + error.message, 'error'); return; }
+  closeModal('modal-superstar');
+  toast(`${name} added!`, 'success');
+  await loadAll();
+}
+
+// ═══════════════════════════════════════
+// SAVE STORYLINE
+// ═══════════════════════════════════════
+async function saveStoryline() {
+  const title  = document.getElementById('sl-title').value.trim();
+  const brand  = document.getElementById('sl-brand').value;
+  const status = document.getElementById('sl-status').value;
+  const s1     = document.getElementById('sl-s1').value.trim();
+  const s2     = document.getElementById('sl-s2').value.trim();
+  const desc   = document.getElementById('sl-desc').value.trim();
+
+  if (!title) { toast('Title is required', 'error'); return; }
+
+  await db.from('storylines').insert({
+    title, brand_id: brand === 'all' ? null : brand,
+    status, superstar1: s1 || null, superstar2: s2 || null,
+    description: desc || null,
+  });
+
+  closeModal('modal-storyline');
+  toast('Storyline saved!', 'success');
+  await loadAll();
+}
+
+function renderStorylines() {
+  const el = document.getElementById('storyline-list');
+  if (!allStorylines.length) {
+    el.innerHTML = '<div class="empty-state"><h3>No storylines yet</h3><p>Add your first feud or storyline above.</p></div>';
+    return;
+  }
+  el.innerHTML = `<div class="storyline-list">
+    ${allStorylines.map(s => {
+      const bc = s.brand_id === 'smackdown' ? 'sd' : s.brand_id;
+      return `<div class="storyline-card">
+        <div>
+          <div class="storyline-title">${s.title}</div>
+          ${s.superstar1 || s.superstar2 ? `<div class="storyline-superstars">${[s.superstar1,s.superstar2].filter(Boolean).join(' vs ')}</div>` : ''}
+          ${s.description ? `<div class="storyline-desc">${s.description}</div>` : ''}
+          ${s.brand_id ? `<div style="margin-top:8px"><span class="brand-pill pill-${bc || 'all'}">${brandName(s.brand_id)}</span></div>` : ''}
+        </div>
+        <div>
+          <span class="badge ${s.status === 'active' ? 'badge-active' : 'badge-vacant'}">${s.status}</span>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+// SAVE PPV
+// ═══════════════════════════════════════
+async function savePPV() {
+  const name   = document.getElementById('ppv-name-input').value.trim();
+  const month  = document.getElementById('ppv-month-input').value.trim();
+  const brand  = document.getElementById('ppv-brand-input').value;
+  const status = document.getElementById('ppv-status-input').value;
+  const main   = document.getElementById('ppv-main-input').value.trim();
+  const note   = document.getElementById('ppv-note-input').value.trim();
+
+  if (!name) { toast('Event name required', 'error'); return; }
+
+  await db.from('ppv_events').insert({
+    name, month: month || null, brand_id: brand,
+    status, main_event: main || null, note: note || null,
+  });
+
+  closeModal('modal-ppv');
+  toast('PPV event added!', 'success');
+  await loadAll();
+}
+
+function renderPPV() {
+  const el = document.getElementById('ppv-grid');
+  if (!allPPVs.length) {
+    el.innerHTML = '<div class="empty-state"><h3>No PPV events yet</h3></div>';
+    return;
+  }
+  el.innerHTML = allPPVs.map(p => {
+    const bc = p.brand_id || 'special';
+    const brandLabel = p.brand_id === 'raw' ? '🔴 RAW' : p.brand_id === 'sd' ? '🔵 SMACKDOWN' : p.brand_id === 'roh' ? '🟡 ROH' : p.brand_id === 'all' ? '⚡ ALL BRANDS' : '⭐ SPECIAL';
+    return `<div class="ppv-card">
+      <div class="ppv-card-top ${bc}"></div>
+      <div class="ppv-card-body">
+        <div class="ppv-month">${p.month || '—'}</div>
+        <div class="ppv-name">${p.name}</div>
+        <div class="ppv-brand-line">${brandLabel} · ${p.event_type || 'PPV'}</div>
+        ${p.main_event ? `<div class="ppv-main">${p.main_event}</div>` : ''}
+        <div class="ppv-status ${p.status}">${(p.status||'upcoming').toUpperCase()}</div>
+        ${p.note ? `<div class="ppv-note">${p.note}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════
+// TOURNAMENTS
+// ═══════════════════════════════════════
+async function renderTournaments() {
+  const el = document.getElementById('tournament-content');
+  if (!allTournaments.length) {
+    el.innerHTML = '<div class="empty-state"><h3>No tournaments yet</h3><p>Create your first tournament above.</p></div>';
+    return;
+  }
+
+  let html = '';
+  for (const t of allTournaments) {
+    const bc = t.brand_id === 'smackdown' ? 'sd' : t.brand_id || 'raw';
+    html += `<div class="tourney-section">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <span class="brand-pill pill-${bc}">${brandName(t.brand_id)}</span>
+        <div class="tourney-name">${t.name}</div>
+      </div>`;
+
+    if (t.format === 'block') {
+      const { data: blocks } = await db.from('tournament_blocks').select('*').eq('tournament_id', t.id);
+      if (blocks?.length) {
+        html += '<div class="blocks-grid">';
+        for (const block of blocks) {
+          const { data: entries } = await db.from('tournament_block_entries').select('*').eq('block_id', block.id).order('points', {ascending: false});
+          html += `<div class="block-card">
+            <div class="block-head ${bc}">${block.name}</div>
+            <table class="block-table">
+              <thead><tr><th>Wrestler</th><th>W</th><th>L</th><th>D</th><th>Pts</th></tr></thead>
+              <tbody>
+                ${(entries||[]).map((e,i) => `<tr class="${e.eliminated ? 'block-elim' : ''}">
+                  <td class="${i===0 ? 'block-leader' : ''}">${e.superstar_name}</td>
+                  <td>${e.wins}</td><td>${e.losses}</td><td>${e.draws}</td>
+                  <td class="block-pts pts-${bc}">${e.points}</td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>`;
+        }
+        html += '</div>';
+      }
+    } else if (t.format === 'bracket') {
+      const { data: bmatches } = await db.from('tournament_bracket_matches').select('*').eq('tournament_id', t.id).order('match_order');
+      if (bmatches?.length) {
+        html += `<div class="bracket-card">
+          ${bmatches.map(m => `<div class="bracket-row">
+            <div class="bracket-round">${m.round}</div>
+            <div class="bracket-teams">${m.team1} <span style="color:var(--muted)">vs</span> ${m.team2}</div>
+            ${m.winner ? `<div class="bracket-winner">${m.winner}</div>` : '<div class="bracket-winner tbd">TBD</div>'}
+          </div>`).join('')}
+        </div>`;
+      }
+    }
+    html += '</div>';
+  }
+  el.innerHTML = html;
+}
+
+async function saveTournament() {
+  const name   = document.getElementById('t-name').value.trim();
+  const brand  = document.getElementById('t-brand').value;
+  const format = document.getElementById('t-format').value;
+  if (!name) { toast('Name required', 'error'); return; }
+  await db.from('tournaments').insert({ name, brand_id: brand, format });
+  closeModal('modal-tournament');
+  toast('Tournament created!', 'success');
+  await loadAll();
+}
+
+// ═══════════════════════════════════════
+// DRAFT TOOL
+// ═══════════════════════════════════════
+function renderDraftSetup() {
+  const el = document.getElementById('draft-content');
+  el.innerHTML = `
+    <div class="draft-setup">
+      <div class="card" style="padding:28px">
+        <div style="margin-bottom:20px">
+          <div class="form-label" style="font-size:14px;margin-bottom:12px">Which brands are participating?</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px">
+              <input type="checkbox" id="draft-raw" value="raw" checked style="accent-color:var(--raw)"> <span style="color:var(--raw);font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px">RAW</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px">
+              <input type="checkbox" id="draft-sd" value="smackdown" checked style="accent-color:var(--sd)"> <span style="color:var(--sd);font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px">SMACKDOWN</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px">
+              <input type="checkbox" id="draft-roh" value="roh" style="accent-color:var(--roh)"> <span style="color:var(--roh);font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px">ROH</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Superstar Pool</label>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Select which superstars go into the draft pool. By default all superstars are included.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+            <button class="btn btn-ghost btn-sm" onclick="selectAllPool()">Select All</button>
+            <button class="btn btn-ghost btn-sm" onclick="deselectAllPool()">Deselect All</button>
+          </div>
+          <div id="draft-pool-checkboxes" style="max-height:240px;overflow-y:auto;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius);padding:8px">
+            ${allSuperstars.map(s => `<label style="display:flex;align-items:center;gap:8px;padding:5px 8px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border)">
+              <input type="checkbox" class="pool-check" value="${s.id}" data-name="${s.name}" checked>
+              <span>${s.name}</span>
+              <span class="brand-pill pill-${s.brand_id === 'smackdown' ? 'sd' : s.brand_id}" style="font-size:9px">${brandName(s.brand_id)}</span>
+            </label>`).join('')}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Draft Mode</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <label style="background:var(--card2);border:2px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:border-color 0.15s" id="mode-auto-label">
+              <input type="radio" name="draft-mode" value="auto" checked style="display:none">
+              <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;margin-bottom:6px">⚡ Auto Draft</div>
+              <div style="font-size:12px;color:var(--muted)">The system randomly assigns all superstars instantly.</div>
+            </label>
+            <label style="background:var(--card2);border:2px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:border-color 0.15s" id="mode-live-label">
+              <input type="radio" name="draft-mode" value="live" style="display:none">
+              <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;margin-bottom:6px">🎯 Live Draft</div>
+              <div style="font-size:12px;color:var(--muted)">You pick superstars one by one per brand.</div>
+            </label>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" style="width:100%" onclick="startDraft()">Start Draft</button>
+      </div>
+    </div>`;
+
+  // Style radio labels
+  document.querySelectorAll('input[name="draft-mode"]').forEach(r => {
+    r.addEventListener('change', () => {
+      document.getElementById('mode-auto-label').style.borderColor = r.value === 'auto' ? 'var(--raw)' : 'var(--border)';
+      document.getElementById('mode-live-label').style.borderColor = r.value === 'live' ? 'var(--raw)' : 'var(--border)';
+    });
+  });
+  document.getElementById('mode-auto-label').style.borderColor = 'var(--raw)';
+}
+
+function selectAllPool() {
+  document.querySelectorAll('.pool-check').forEach(c => c.checked = true);
+}
+function deselectAllPool() {
+  document.querySelectorAll('.pool-check').forEach(c => c.checked = false);
+}
+
+async function startDraft() {
+  const brands = ['raw','smackdown','roh'].filter(b => document.getElementById(`draft-${b}`)?.checked);
+  if (brands.length < 2) { toast('Select at least 2 brands', 'error'); return; }
+
+  const mode = document.querySelector('input[name="draft-mode"]:checked').value;
+  const pool = [...document.querySelectorAll('.pool-check:checked')].map(c => ({
+    id: parseInt(c.value), name: c.dataset.name
+  }));
+
+  if (!pool.length) { toast('Select at least one superstar', 'error'); return; }
+
+  const { data: session } = await db.from('draft_sessions').insert({
+    name: `Draft ${new Date().toLocaleDateString()}`,
+    brands_involved: brands,
+    mode,
+    status: 'active',
+  }).select().single();
+
+  if (!session) { toast('Error creating draft', 'error'); return; }
+
+  // Shuffle pool
+  const shuffled = [...pool].sort(() => Math.random() - 0.5);
+  await db.from('draft_pool').insert(shuffled.map(s => ({
+    draft_id: session.id,
+    superstar_id: s.id,
+    superstar_name: s.name,
+  })));
+
+  draftSession = { ...session, pool: shuffled, brands, mode, picks: {} };
+  brands.forEach(b => draftSession.picks[b] = []);
+
+  if (mode === 'auto') {
+    runAutoDraft();
+  } else {
+    renderLiveDraft();
+  }
+}
+
+async function runAutoDraft() {
+  const { brands, pool } = draftSession;
+  const picks = {};
+  brands.forEach(b => picks[b] = []);
+  pool.forEach((s, i) => {
+    const brand = brands[i % brands.length];
+    picks[brand].push(s);
+  });
+
+  // Save results
+  for (const brand of brands) {
+    for (let i = 0; i < picks[brand].length; i++) {
+      await db.from('draft_pool')
+        .update({ drafted: true, drafted_to: brand, pick_number: i + 1 })
+        .eq('draft_id', draftSession.id)
+        .eq('superstar_id', picks[brand][i].id);
+    }
+  }
+
+  // Update superstar brands
+  for (const brand of brands) {
+    for (const s of picks[brand]) {
+      await db.from('superstars').update({ brand_id: brand }).eq('id', s.id);
+    }
+  }
+
+  await db.from('draft_sessions').update({ status: 'completed', completed_at: new Date() }).eq('id', draftSession.id);
+  await loadAll();
+  renderAutoDraftResults(picks, brands);
+}
+
+function renderAutoDraftResults(picks, brands) {
+  const el = document.getElementById('draft-content');
+  const cols = brands.map(b => {
+    const bc = b === 'smackdown' ? 'sd' : b;
+    return `<div class="draft-brand-col">
+      <div class="draft-brand-head ${bc}">${brandName(b)} <span style="font-size:12px;font-weight:400;color:var(--muted)">${picks[b].length} picks</span></div>
+      ${picks[b].map((s,i) => `<div class="draft-pick-item">
+        <div class="draft-pick-num">${i+1}</div>
+        <div>${s.name}</div>
+      </div>`).join('')}
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div style="margin-bottom:20px;display:flex;align-items:center;justify-content:space-between">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;color:var(--win)">✓ Draft Complete</div>
+      <button class="btn btn-ghost btn-sm" onclick="renderDraftSetup()">New Draft</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(${brands.length},1fr);gap:12px">${cols}</div>`;
+}
+
+let liveDraftPickIndex = 0;
+function renderLiveDraft() {
+  liveDraftPickIndex = 0;
+  renderLiveDraftState();
+}
+
+function renderLiveDraftState() {
+  const { brands, pool, picks } = draftSession;
+  const remaining = pool.filter(s => !Object.values(picks).flat().find(p => p.id === s.id));
+  if (!remaining.length) {
+    finishLiveDraft();
+    return;
+  }
+  const currentBrand = brands[liveDraftPickIndex % brands.length];
+  const bc = currentBrand === 'smackdown' ? 'sd' : currentBrand;
+  const el = document.getElementById('draft-content');
+  const colsHtml = brands.map(b => {
+    const bbc = b === 'smackdown' ? 'sd' : b;
+    return `<div class="draft-brand-col">
+      <div class="draft-brand-head ${bbc}">${brandName(b)} <span style="font-size:11px;font-weight:400;color:var(--muted)">${picks[b].length}</span></div>
+      ${picks[b].map((s,i) => `<div class="draft-pick-item">
+        <div class="draft-pick-num">${i+1}</div>
+        <div>${s.name}</div>
+      </div>`).join('') || '<div style="padding:12px 16px;font-size:12px;color:var(--muted)">No picks yet</div>'}
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="draft-current-pick">
+      <div class="draft-current-label">Now Picking — Pick #${liveDraftPickIndex + 1}</div>
+      <div class="draft-current-brand ${bc}">${brandName(currentBrand)}</div>
+    </div>
+    <div class="draft-board">
+      <div class="draft-pool-panel">
+        <div class="draft-pool-head">Available (${remaining.length})</div>
+        <div class="draft-pool-list">
+          ${remaining.map(s => `<div class="draft-pool-item" onclick="makeLivePick(${s.id}, '${s.name}')">
+            <span>👤</span> ${s.name}
+          </div>`).join('')}
+        </div>
+      </div>
+      <div>
+        <div class="draft-brand-columns" style="grid-template-columns:repeat(${brands.length},1fr)">${colsHtml}</div>
+      </div>
+    </div>`;
+}
+
+async function makeLivePick(id, name) {
+  const { brands, picks } = draftSession;
+  const currentBrand = brands[liveDraftPickIndex % brands.length];
+  picks[currentBrand].push({ id, name });
+
+  await db.from('draft_pool')
+    .update({ drafted: true, drafted_to: currentBrand, pick_number: liveDraftPickIndex + 1 })
+    .eq('draft_id', draftSession.id)
+    .eq('superstar_id', id);
+
+  await db.from('superstars').update({ brand_id: currentBrand }).eq('id', id);
+
+  liveDraftPickIndex++;
+  renderLiveDraftState();
+}
+
+async function finishLiveDraft() {
+  await db.from('draft_sessions').update({ status: 'completed', completed_at: new Date() }).eq('id', draftSession.id);
+  await loadAll();
+  renderAutoDraftResults(draftSession.picks, draftSession.brands);
+}
+
+// ═══════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════
+function brandName(id) {
+  if (id === 'raw') return 'RAW';
+  if (id === 'smackdown') return 'SmackDown';
+  if (id === 'roh') return 'Ring of Honor';
+  return id || '—';
+}
+
+function editSuperstar(id) {
+  toast('Edit feature coming soon', '');
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+loadAll();
+</script>
+</body>
+</html>
