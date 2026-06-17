@@ -2223,6 +2223,24 @@ function toggleEpisode(id) {
 // ═══════════════════════════════════════
 // AUTO-UPDATE TOURNAMENT STANDINGS
 // ═══════════════════════════════════════
+function normalizeName(name) {
+  if (!name) return '';
+  return name.toLowerCase()
+    .replace(/^the\s+/i, '')
+    .replace(/^el\s+/i, '')
+    .replace(/^la\s+/i, '')
+    .replace(/^los\s+/i, '')
+    .replace(/^las\s+/i, '')
+    .trim();
+}
+
+function namesMatch(a, b) {
+  if (!a || !b) return false;
+  const na = normalizeName(a);
+  const nb = normalizeName(b);
+  return na === nb || a.toLowerCase() === b.toLowerCase() ||
+    na.includes(nb) || nb.includes(na);
+}
 async function updateTournamentStandings(p1, p2, winner, method) {
   const isDraw = method === 'DRAW' || method === 'CO' && !winner;
 
@@ -2250,13 +2268,13 @@ async function updateTournamentStandings(p1, p2, winner, method) {
 
       if (!entries?.length) continue;
 
-      const e1 = entries.find(e => e.superstar_name?.toLowerCase() === p1?.toLowerCase());
-      const e2 = entries.find(e => e.superstar_name?.toLowerCase() === p2?.toLowerCase());
+      const e1 = entries.find(e => namesMatch(e.superstar_name, p1));
+      const e2 = entries.find(e => namesMatch(e.superstar_name, p2));
 
       // Only update if BOTH participants are in the same block
       if (!e1 || !e2) continue;
 
-      const p1Win = winner?.toLowerCase() === p1?.toLowerCase();
+      const p1Win = namesMatch(winner, p1);
 
       if (isDraw || method === 'CO') {
         // Draw or count out — 1 point each, 1 draw each
