@@ -1342,11 +1342,21 @@ body {
 <!-- ══════════ EPISODES ══════════ -->
 <div id="page-episodes" class="page">
   <div class="container">
-    <div class="logger-header">
-      <h2>Episode Log</h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+      <div class="section-title" style="margin-bottom:0">Episode Results</div>
       <button class="btn btn-primary" onclick="openNewEpisodeModal()">+ Log New Episode</button>
     </div>
     <div id="episode-list"></div>
+  </div>
+</div>
+
+<!-- EPISODE RESULTS SLIDE-IN PANEL -->
+<div id="episode-panel-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1500;display:none;align-items:flex-end;justify-content:center" onclick="closeEpisodePanel(event)">
+  <div id="episode-panel" style="background:var(--dark);border-top:1px solid var(--border2);border-radius:12px 12px 0 0;width:100%;max-width:700px;max-height:85vh;overflow-y:auto;transform:translateY(100%);transition:transform 0.3s ease">
+    <div style="padding:12px;text-align:center;cursor:pointer" onclick="closeEpisodePanel()">
+      <div style="width:40px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto"></div>
+    </div>
+    <div id="episode-panel-content" style="padding:0 20px 32px"></div>
   </div>
 </div>
 
@@ -2175,7 +2185,7 @@ async function showProfile(id) {
 }
 
 // ═══════════════════════════════════════
-// EPISODES
+// EPISODES — SPORTS RESULTS LAYOUT
 // ═══════════════════════════════════════
 function renderEpisodes() {
   const el = document.getElementById('episode-list');
@@ -2183,36 +2193,132 @@ function renderEpisodes() {
     el.innerHTML = '<div class="empty-state"><h3>No episodes logged yet</h3><p>Hit "Log New Episode" to get started.</p></div>';
     return;
   }
-  el.innerHTML = allEpisodes.map((ep, idx) => {
-    const bc = ep.brand_id === 'smackdown' ? 'sd' : ep.brand_id;
-    const epMatches = allMatches.filter(m => m.episode_id === ep.id);
-    return `<div class="episode-card">
-      <div class="episode-card-header" onclick="toggleEpisode('ep-body-${idx}')">
-        <div class="episode-num">${ep.episode_number}</div>
-        <div class="episode-info">
-          <div class="episode-brand" style="color:var(--${bc})">${brandName(ep.brand_id)} — Month ${ep.month_number || '?'}</div>
-          <div class="episode-summary">${ep.summary || 'No summary'}</div>
+
+  // Group episodes by month
+  const byMonth = {};
+  allEpisodes.forEach(ep => {
+    const key = ep.month_number || 0;
+    if (!byMonth[key]) byMonth[key] = [];
+    byMonth[key].push(ep);
+  });
+
+  // Sort months descending
+  const months = Object.keys(byMonth).sort((a,b) => b - a);
+
+  let html = '';
+  for (const month of months) {
+    const eps = byMonth[month];
+    const monthLabel = eps[0].month_label || `Month ${month}`;
+
+    // Group by brand within month
+    const byBrand = {};
+    eps.forEach(ep => {
+      if (!byBrand[ep.brand_id]) byBrand[ep.brand_id] = [];
+      byBrand[ep.brand_id].push(ep);
+    });
+
+    html += `<div style="margin-bottom:32px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:12px">
+        ${monthLabel}
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>`;
+
+    // Show brands in order RAW, SmackDown, ROH
+    const brandOrder = ['raw', 'smackdown', 'roh'];
+    for (const brand of brandOrder) {
+      const brandEps = byBrand[brand];
+      if (!brandEps) continue;
+
+      // Sort episodes ascending within brand
+      brandEps.sort((a,b) => a.episode_number - b.episode_number);
+
+      for (const ep of brandEps) {
+        const bc = brand === 'smackdown' ? 'sd' : brand;
+        const brandColor = `var(--${bc})`;
+        const epMatches = allMatches.filter(m => m.episode_id === ep.id);
+        const matchCount = epMatches.length;
+
+        html += `<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:8px;cursor:pointer;transition:border-color 0.15s" onclick="openEpisodePanel(${ep.id})" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="height:3px;background:${brandColor}"></div>
+          <div style="display:flex;align-items:center;gap:16px;padding:14px 18px">
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;letter-spacing:1px;color:${brandColor};text-transform:uppercase">${brandName(brand)}</span>
+                <span style="font-size:11px;color:var(--muted)">Episode ${ep.episode_number}</span>
+              </div>
+              <div style="font-size:12px;color:#aaa;line-height:1.5">${ep.summary || 'No summary'}</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              ${ep.avg_rating ? `<div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;color:var(--star)">${ep.avg_rating}<span style="font-size:12px">★</span></div>` : ''}
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">${matchCount} match${matchCount !== 1 ? 'es' : ''}</div>
+            </div>
+            <div style="color:var(--muted);font-size:18px;flex-shrink:0">›</div>
+          </div>
+        </div>`;
+      }
+    }
+    html += '</div>';
+  }
+  el.innerHTML = html;
+}
+
+function openEpisodePanel(episodeId) {
+  const ep = allEpisodes.find(e => e.id === episodeId);
+  if (!ep) return;
+
+  const bc = ep.brand_id === 'smackdown' ? 'sd' : ep.brand_id;
+  const brandColor = `var(--${bc})`;
+  const epMatches = allMatches.filter(m => m.episode_id === ep.id)
+    .sort((a,b) => {
+      const order = ['Opener','Match 2','Match 3','Match 4','Match 5','Match 6','Main Event'];
+      return order.indexOf(a.match_order) - order.indexOf(b.match_order);
+    });
+
+  const content = document.getElementById('episode-panel-content');
+  content.innerHTML = `
+    <div style="margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;color:${brandColor};text-transform:uppercase;letter-spacing:2px">${brandName(ep.brand_id)}</span>
+        <span style="font-size:13px;color:var(--muted)">Episode ${ep.episode_number} · ${ep.month_label || 'Month ' + ep.month_number}</span>
+        ${ep.avg_rating ? `<span style="margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;color:var(--star)">${ep.avg_rating}★</span>` : ''}
+      </div>
+      ${ep.summary ? `<div style="font-size:13px;color:#aaa;line-height:1.6;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius)">${ep.summary}</div>` : ''}
+    </div>
+
+    ${epMatches.length ? epMatches.map(m => {
+      const ratingColor = m.rating >= 4.5 ? 'var(--roh)' : m.rating >= 4.0 ? 'var(--win)' : 'var(--text)';
+      return `<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px">
+          <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)">${m.match_order || '—'}</div>
+          ${m.rating ? `<div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;color:${ratingColor}">${m.rating}★</div>` : ''}
         </div>
-        ${ep.avg_rating ? `<div class="episode-rating">${ep.avg_rating}★</div>` : '<div style="color:var(--muted);font-size:12px">—</div>'}
-      </div>
-      <div class="episode-body" id="ep-body-${idx}">
-        ${epMatches.length ? `
-        <table class="match-log-table">
-          <thead><tr><th>Order</th><th>Match</th><th>Winner</th><th>Move / Method</th><th>★</th><th>Note</th></tr></thead>
-          <tbody>
-            ${epMatches.map(m => `<tr>
-              <td style="color:var(--muted)">${m.match_order || '—'}</td>
-              <td>${m.participant1} vs ${m.participant2}</td>
-              <td class="match-winner">${m.winner || '—'}</td>
-              <td style="color:var(--muted)">${m.winning_move || '—'} / ${m.method || '—'}</td>
-              <td style="color:var(--star)">${m.rating || '—'}</td>
-              <td><span class="match-note-text">${m.note || ''}</span></td>
-            </tr>`).join('')}
-          </tbody>
-        </table>` : '<p style="color:var(--muted);font-size:12px;padding:8px 0">No matches logged for this episode.</p>'}
-      </div>
-    </div>`;
-  }).join('');
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:600;color:#fff">${m.participant1}</span>
+          <span style="font-size:11px;color:var(--muted)">vs</span>
+          <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:600;color:#fff">${m.participant2}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:12px;color:var(--win);font-weight:600">Winner: ${m.winner || '—'}</span>
+          ${m.winning_move ? `<span style="font-size:11px;color:var(--muted)">via ${m.winning_move}</span>` : ''}
+          ${m.method ? `<span style="font-size:10px;background:var(--card2);border:1px solid var(--border);padding:2px 6px;color:var(--muted)">${m.method}</span>` : ''}
+        </div>
+        ${m.note ? `<div style="margin-top:6px;font-size:11px;color:var(--muted);font-style:italic">${m.note}</div>` : ''}
+      </div>`;
+    }).join('') : '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px">No matches logged for this episode.</div>'}`;
+
+  const overlay = document.getElementById('episode-panel-overlay');
+  const panel = document.getElementById('episode-panel');
+  overlay.style.display = 'flex';
+  setTimeout(() => { panel.style.transform = 'translateY(0)'; }, 10);
+}
+
+function closeEpisodePanel(event) {
+  if (event && event.target !== document.getElementById('episode-panel-overlay')) return;
+  const panel = document.getElementById('episode-panel');
+  panel.style.transform = 'translateY(100%)';
+  setTimeout(() => {
+    document.getElementById('episode-panel-overlay').style.display = 'none';
+  }, 300);
 }
 
 function toggleEpisode(id) {
