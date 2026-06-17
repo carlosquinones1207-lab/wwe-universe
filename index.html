@@ -2221,6 +2221,73 @@ function toggleEpisode(id) {
 }
 
 // ═══════════════════════════════════════
+// AUTO-UPDATE TOURNAMENT STANDINGS
+// ═══════════════════════════════════════
+async function updateTournamentStandings(p1, p2, winner, method) {
+  const isDraw = method === 'DRAW' || method === 'CO' && !winner;
+
+  // Find active block tournaments
+  const { data: activeTournaments } = await db.from('tournaments')
+    .select('id')
+    .eq('status', 'active')
+    .eq('format', 'block');
+
+  if (!activeTournaments?.length) return;
+
+  for (const t of activeTournaments) {
+    // Get all blocks for this tournament
+    const { data: blocks } = await db.from('tournament_blocks')
+      .select('id')
+      .eq('tournament_id', t.id);
+
+    if (!blocks?.length) continue;
+
+    for (const block of blocks) {
+      // Check if both participants are in this block
+      const { data: entries } = await db.from('tournament_block_entries')
+        .select('*')
+        .eq('block_id', block.id);
+
+      if (!entries?.length) continue;
+
+      const e1 = entries.find(e => e.superstar_name?.toLowerCase() === p1?.toLowerCase());
+      const e2 = entries.find(e => e.superstar_name?.toLowerCase() === p2?.toLowerCase());
+
+      // Only update if BOTH participants are in the same block
+      if (!e1 || !e2) continue;
+
+      const p1Win = winner?.toLowerCase() === p1?.toLowerCase();
+
+      if (isDraw || method === 'CO') {
+        // Draw or count out — 1 point each, 1 draw each
+        await db.from('tournament_block_entries').update({
+          draws: (e1.draws || 0) + 1,
+          points: (e1.points || 0) + 1,
+        }).eq('id', e1.id);
+        await db.from('tournament_block_entries').update({
+          draws: (e2.draws || 0) + 1,
+          points: (e2.points || 0) + 1,
+        }).eq('id', e2.id);
+      } else {
+        // Clean win — 2 points for winner, 1 loss for loser
+        const winner_entry = p1Win ? e1 : e2;
+        const loser_entry  = p1Win ? e2 : e1;
+        await db.from('tournament_block_entries').update({
+          wins: (winner_entry.wins || 0) + 1,
+          points: (winner_entry.points || 0) + 2,
+        }).eq('id', winner_entry.id);
+        await db.from('tournament_block_entries').update({
+          losses: (loser_entry.losses || 0) + 1,
+        }).eq('id', loser_entry.id);
+      }
+
+      // Found the block — no need to check others
+      return;
+    }
+  }
+}
+
+// ═══════════════════════════════════════
 // SAVE EPISODE
 // ═══════════════════════════════════════
 async function saveEpisode() {
@@ -2297,6 +2364,9 @@ async function saveEpisode() {
 
         await updateSuperstar(m.participant1, p1Win && !isDraw);
         await updateSuperstar(m.participant2, !p1Win && !isDraw);
+
+        // Auto-update tournament standings
+        await updateTournamentStandings(m.participant1, m.participant2, m.winner, m.method);
       }
     }
   }
