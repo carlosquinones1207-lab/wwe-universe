@@ -1202,7 +1202,6 @@ body {
     <button class="nav-link" onclick="showPage('tournaments')">Tournaments</button>
     <button class="nav-link" onclick="showPage('ppv')">PPV Calendar</button>
     <button class="nav-link" onclick="showPage('storylines')">Current Storylines</button>
-    <button class="nav-link" onclick="showPage('generator')">Storyline Generator</button>
     <button class="nav-link" onclick="showPage('draft')">Draft Tool</button>
   </div>
 </nav>
@@ -1381,111 +1380,6 @@ body {
       <button class="btn btn-primary btn-sm" onclick="openNewStorylineModal()">+ New Storyline</button>
     </div>
     <div id="storyline-list"></div>
-  </div>
-</div>
-
-<!-- ══════════ STORYLINE GENERATOR ══════════ -->
-<div id="page-generator" class="page">
-  <div class="container">
-    <div class="section-title">Storyline Generator</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
-
-      <!-- INPUT PANEL -->
-      <div class="card" style="padding:24px">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;letter-spacing:1px;margin-bottom:20px">Build Your Storyline</div>
-
-        <div class="form-group">
-          <label class="form-label">Brand</label>
-          <select class="form-select" id="gen-brand">
-            <option value="RAW">RAW</option>
-            <option value="SmackDown">SmackDown</option>
-            <option value="Ring of Honor">Ring of Honor</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Superstar 1 (Main)</label>
-          <input class="form-input" id="gen-s1" placeholder="e.g. Roman Reigns">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Superstar 1 Alignment</label>
-          <select class="form-select" id="gen-s1-align">
-            <option value="Face">Face</option>
-            <option value="Heel">Heel</option>
-            <option value="Tweener">Tweener</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Superstar 2 (Opponent)</label>
-          <input class="form-input" id="gen-s2" placeholder="e.g. Triple H">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Superstar 2 Alignment</label>
-          <select class="form-select" id="gen-s2-align">
-            <option value="Heel">Heel</option>
-            <option value="Face">Face</option>
-            <option value="Tweener">Tweener</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Feud Type</label>
-          <select class="form-select" id="gen-type">
-            <option value="Personal">Personal / Rivalry</option>
-            <option value="Championship">Championship</option>
-            <option value="Faction War">Faction War</option>
-            <option value="Betrayal">Betrayal / Turn</option>
-            <option value="Grudge">Grudge Match</option>
-          </select>
-        </div>
-
-        <div class="form-group" id="gen-title-group" style="display:none">
-          <label class="form-label">Title at Stake</label>
-          <input class="form-input" id="gen-title" placeholder="e.g. WWE Undisputed Championship">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Duration</label>
-          <select class="form-select" id="gen-duration">
-            <option value="1 month">1 Month (Short)</option>
-            <option value="2 months" selected>2 Months (Standard)</option>
-            <option value="3 months">3 Months (Long)</option>
-            <option value="4+ months">4+ Months (Epic)</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Intensity</label>
-          <select class="form-select" id="gen-intensity">
-            <option value="Slow Burn">Slow Burn — builds gradually over weeks</option>
-            <option value="Medium" selected>Medium — steady escalation</option>
-            <option value="Explosive">Explosive — immediate hot start</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Additional Context (Optional)</label>
-          <textarea class="form-textarea" id="gen-context" placeholder="Any extra details — existing history, faction involvement, how you want it to end..."></textarea>
-        </div>
-
-        <button class="btn btn-primary" style="width:100%" onclick="generateStoryline()">
-          ⚡ Generate Storyline
-        </button>
-      </div>
-
-      <!-- OUTPUT PANEL -->
-      <div id="gen-output">
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:40px 24px;text-align:center;color:var(--muted)">
-          <div style="font-size:32px;margin-bottom:12px">⚡</div>
-          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;color:var(--muted2)">Fill in the details and hit Generate</div>
-          <div style="font-size:12px;margin-top:8px">The AI will create a full storyline concept tailored to your universe</div>
-        </div>
-      </div>
-
-    </div>
   </div>
 </div>
 
