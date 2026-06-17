@@ -1201,7 +1201,8 @@ body {
     <button class="nav-link" onclick="showPage('episodes')">Episodes</button>
     <button class="nav-link" onclick="showPage('tournaments')">Tournaments</button>
     <button class="nav-link" onclick="showPage('ppv')">PPV Calendar</button>
-    <button class="nav-link" onclick="showPage('storylines')">Storylines</button>
+    <button class="nav-link" onclick="showPage('storylines')">Current Storylines</button>
+    <button class="nav-link" onclick="showPage('generator')">Storyline Generator</button>
     <button class="nav-link" onclick="showPage('draft')">Draft Tool</button>
   </div>
 </nav>
@@ -1372,14 +1373,119 @@ body {
   </div>
 </div>
 
-<!-- ══════════ STORYLINES ══════════ -->
+<!-- ══════════ CURRENT STORYLINES ══════════ -->
 <div id="page-storylines" class="page">
   <div class="container">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
-      <div class="section-title" style="margin-bottom:0">Storylines & Feuds</div>
+      <div class="section-title" style="margin-bottom:0">Current Storylines</div>
       <button class="btn btn-primary btn-sm" onclick="openNewStorylineModal()">+ New Storyline</button>
     </div>
     <div id="storyline-list"></div>
+  </div>
+</div>
+
+<!-- ══════════ STORYLINE GENERATOR ══════════ -->
+<div id="page-generator" class="page">
+  <div class="container">
+    <div class="section-title">Storyline Generator</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+
+      <!-- INPUT PANEL -->
+      <div class="card" style="padding:24px">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;letter-spacing:1px;margin-bottom:20px">Build Your Storyline</div>
+
+        <div class="form-group">
+          <label class="form-label">Brand</label>
+          <select class="form-select" id="gen-brand">
+            <option value="RAW">RAW</option>
+            <option value="SmackDown">SmackDown</option>
+            <option value="Ring of Honor">Ring of Honor</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Superstar 1 (Main)</label>
+          <input class="form-input" id="gen-s1" placeholder="e.g. Roman Reigns">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Superstar 1 Alignment</label>
+          <select class="form-select" id="gen-s1-align">
+            <option value="Face">Face</option>
+            <option value="Heel">Heel</option>
+            <option value="Tweener">Tweener</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Superstar 2 (Opponent)</label>
+          <input class="form-input" id="gen-s2" placeholder="e.g. Triple H">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Superstar 2 Alignment</label>
+          <select class="form-select" id="gen-s2-align">
+            <option value="Heel">Heel</option>
+            <option value="Face">Face</option>
+            <option value="Tweener">Tweener</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Feud Type</label>
+          <select class="form-select" id="gen-type">
+            <option value="Personal">Personal / Rivalry</option>
+            <option value="Championship">Championship</option>
+            <option value="Faction War">Faction War</option>
+            <option value="Betrayal">Betrayal / Turn</option>
+            <option value="Grudge">Grudge Match</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="gen-title-group" style="display:none">
+          <label class="form-label">Title at Stake</label>
+          <input class="form-input" id="gen-title" placeholder="e.g. WWE Undisputed Championship">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Duration</label>
+          <select class="form-select" id="gen-duration">
+            <option value="1 month">1 Month (Short)</option>
+            <option value="2 months" selected>2 Months (Standard)</option>
+            <option value="3 months">3 Months (Long)</option>
+            <option value="4+ months">4+ Months (Epic)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Intensity</label>
+          <select class="form-select" id="gen-intensity">
+            <option value="Slow Burn">Slow Burn — builds gradually over weeks</option>
+            <option value="Medium" selected>Medium — steady escalation</option>
+            <option value="Explosive">Explosive — immediate hot start</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Additional Context (Optional)</label>
+          <textarea class="form-textarea" id="gen-context" placeholder="Any extra details — existing history, faction involvement, how you want it to end..."></textarea>
+        </div>
+
+        <button class="btn btn-primary" style="width:100%" onclick="generateStoryline()">
+          ⚡ Generate Storyline
+        </button>
+      </div>
+
+      <!-- OUTPUT PANEL -->
+      <div id="gen-output">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:40px 24px;text-align:center;color:var(--muted)">
+          <div style="font-size:32px;margin-bottom:12px">⚡</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;color:var(--muted2)">Fill in the details and hit Generate</div>
+          <div style="font-size:12px;margin-top:8px">The AI will create a full storyline concept tailored to your universe</div>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
 
@@ -1752,6 +1858,7 @@ function showPage(name) {
     }
   });
   if (name === 'championships') renderChampionships();
+  if (name === 'generator') initGenerator();
   window.scrollTo(0,0);
 }
 
@@ -2750,8 +2857,166 @@ async function finishLiveDraft() {
 }
 
 // ═══════════════════════════════════════
-// HELPERS
+// STORYLINE GENERATOR
 // ═══════════════════════════════════════
+function initGenerator() {
+  const typeSelect = document.getElementById('gen-type');
+  const titleGroup = document.getElementById('gen-title-group');
+  if (typeSelect) {
+    typeSelect.addEventListener('change', () => {
+      titleGroup.style.display = typeSelect.value === 'Championship' ? 'block' : 'none';
+    });
+  }
+}
+
+async function generateStoryline() {
+  const brand     = document.getElementById('gen-brand').value;
+  const s1        = document.getElementById('gen-s1').value.trim();
+  const s1align   = document.getElementById('gen-s1-align').value;
+  const s2        = document.getElementById('gen-s2').value.trim();
+  const s2align   = document.getElementById('gen-s2-align').value;
+  const type      = document.getElementById('gen-type').value;
+  const title     = document.getElementById('gen-title').value.trim();
+  const duration  = document.getElementById('gen-duration').value;
+  const intensity = document.getElementById('gen-intensity').value;
+  const context   = document.getElementById('gen-context').value.trim();
+
+  if (!s1 || !s2) { toast('Enter both superstars', 'error'); return; }
+
+  const output = document.getElementById('gen-output');
+  output.innerHTML = `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:40px 24px;text-align:center">
+      <div class="loader" style="margin:0 auto 16px"></div>
+      <div style="color:var(--muted);font-size:13px">Generating your storyline...</div>
+    </div>`;
+
+  // Build prompt
+  const champLine = type === 'Championship' && title ? ` The ${title} is on the line.` : '';
+  const contextLine = context ? `\n\nAdditional context: ${context}` : '';
+  const prompt = `You are a creative WWE universe mode storyline writer. Create a compelling ${duration} ${intensity.toLowerCase()} ${type.toLowerCase()} storyline for ${brand}.
+
+SUPERSTARS:
+- ${s1} (${s1align})
+- ${s2} (${s2align})
+${champLine}
+
+Universe context: This is a custom WWE 2K26 universe with three brands — RAW, SmackDown, and Ring of Honor. The universe is currently in Month 2 of Year 1, in the middle of inaugural championship tournaments.${contextLine}
+
+Generate a full storyline with:
+1. A catchy storyline title
+2. How the feud ignites (the inciting incident)
+3. Week by week escalation — 4 to 6 key story beats depending on duration
+4. The PPV payoff match with stipulation
+5. How it ends and what it means for both superstars going forward
+
+Format your response clearly with these exact section headers:
+STORYLINE TITLE:
+HOW IT BEGINS:
+KEY STORY BEATS:
+PPV PAYOFF:
+THE ENDING:
+AFTERMATH:
+
+Make it dramatic, specific, and feel like it belongs in a real wrestling universe. Use the superstars' alignments to drive the narrative logic.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content?.map(b => b.text || '').join('') || '';
+
+    if (!text) throw new Error('No response');
+
+    // Parse sections
+    const sections = {
+      title:   extractSection(text, 'STORYLINE TITLE:',  'HOW IT BEGINS:'),
+      begins:  extractSection(text, 'HOW IT BEGINS:',    'KEY STORY BEATS:'),
+      beats:   extractSection(text, 'KEY STORY BEATS:',  'PPV PAYOFF:'),
+      payoff:  extractSection(text, 'PPV PAYOFF:',       'THE ENDING:'),
+      ending:  extractSection(text, 'THE ENDING:',       'AFTERMATH:'),
+      aftermath: extractSection(text, 'AFTERMATH:',      null),
+    };
+
+    const bc = brand === 'RAW' ? 'raw' : brand === 'SmackDown' ? 'smackdown' : 'roh';
+    const brandColor = bc === 'raw' ? 'var(--raw)' : bc === 'smackdown' ? 'var(--sd)' : 'var(--roh)';
+
+    output.innerHTML = `
+      <div class="card" style="overflow:hidden">
+        <div style="height:3px;background:${brandColor}"></div>
+        <div style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div>
+            <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">${brand} · ${type} · ${duration}</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:24px;color:#fff">${sections.title || s1 + ' vs ' + s2}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px">${s1} (${s1align}) vs ${s2} (${s2align}) · ${intensity}</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="saveGeneratedStoryline()">+ Save to Storylines</button>
+        </div>
+        <div style="padding:20px 24px">
+          ${genSection('🔥 How It Begins', sections.begins)}
+          ${genSection('📅 Key Story Beats', sections.beats)}
+          ${genSection('🏆 PPV Payoff', sections.payoff)}
+          ${genSection('🎯 The Ending', sections.ending)}
+          ${genSection('⚡ Aftermath', sections.aftermath)}
+        </div>
+      </div>`;
+
+    // Store for saving
+    window._lastGenerated = {
+      title: sections.title || `${s1} vs ${s2}`,
+      brand: bc,
+      s1, s2, type, duration, intensity,
+      description: [sections.begins, sections.beats, sections.payoff, sections.ending, sections.aftermath].filter(Boolean).join('\n\n')
+    };
+
+  } catch (err) {
+    output.innerHTML = `
+      <div style="background:var(--card);border:1px solid var(--heel);border-radius:var(--radius);padding:24px;text-align:center">
+        <div style="color:var(--heel);font-weight:600;margin-bottom:8px">Generation failed</div>
+        <div style="color:var(--muted);font-size:12px">${err.message}</div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:12px" onclick="generateStoryline()">Try Again</button>
+      </div>`;
+  }
+}
+
+function extractSection(text, startKey, endKey) {
+  const start = text.indexOf(startKey);
+  if (start === -1) return '';
+  const from = start + startKey.length;
+  const end = endKey ? text.indexOf(endKey, from) : text.length;
+  return (end === -1 ? text.slice(from) : text.slice(from, end)).trim();
+}
+
+function genSection(label, content) {
+  if (!content) return '';
+  const lines = content.split('\n').filter(l => l.trim());
+  return `<div style="margin-bottom:20px">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">${label}</div>
+    ${lines.map(l => `<p style="font-size:13px;color:#ccc;line-height:1.7;margin-bottom:6px">${l.replace(/^[-•*]\s*/,'')}</p>`).join('')}
+  </div>`;
+}
+
+async function saveGeneratedStoryline() {
+  const g = window._lastGenerated;
+  if (!g) return;
+  await db.from('storylines').insert({
+    title: g.title,
+    brand_id: g.brand,
+    superstar1: g.s1,
+    superstar2: g.s2,
+    status: 'upcoming',
+    description: g.description,
+  });
+  toast('Storyline saved!', 'success');
+  await loadAll();
+}
 function brandName(id) {
   if (id === 'raw') return 'RAW';
   if (id === 'smackdown') return 'SmackDown';
