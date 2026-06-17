@@ -1197,6 +1197,7 @@ body {
     <button class="nav-link active" onclick="showPage('dashboard')">Dashboard</button>
     <button class="nav-link" onclick="showPage('shows')">Shows</button>
     <button class="nav-link" onclick="showPage('roster')">Roster</button>
+    <button class="nav-link" onclick="showPage('championships')">Championships</button>
     <button class="nav-link" onclick="showPage('episodes')">Episodes</button>
     <button class="nav-link" onclick="showPage('tournaments')">Tournaments</button>
     <button class="nav-link" onclick="showPage('ppv')">PPV Calendar</button>
@@ -1382,6 +1383,14 @@ body {
   </div>
 </div>
 
+<!-- ══════════ CHAMPIONSHIPS ══════════ -->
+<div id="page-championships" class="page">
+  <div class="container">
+    <div class="section-title">Championship History</div>
+    <div id="championships-content"></div>
+  </div>
+</div>
+
 <!-- ══════════ DRAFT TOOL ══════════ -->
 <div id="page-draft" class="page">
   <div class="container">
@@ -1493,6 +1502,75 @@ body {
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modal-superstar')">Cancel</button>
       <button class="btn btn-primary" onclick="saveSuperstar()">Add Superstar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Superstar Modal -->
+<div class="modal-overlay" id="modal-edit-superstar">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Edit Superstar</div>
+      <button class="modal-close" onclick="closeModal('modal-edit-superstar')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-ss-id">
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Name</label>
+          <input class="form-input" id="edit-ss-name" placeholder="Superstar name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Brand</label>
+          <select class="form-select" id="edit-ss-brand">
+            <option value="raw">RAW</option>
+            <option value="smackdown">SmackDown</option>
+            <option value="roh">ROH</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Division</label>
+          <input class="form-input" id="edit-ss-division" placeholder="Main Event, Mid-Card...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Alignment</label>
+          <select class="form-select" id="edit-ss-alignment">
+            <option value="Face">Face</option>
+            <option value="Heel">Heel</option>
+            <option value="Tweener">Tweener</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date of Birth</label>
+          <input class="form-input" id="edit-ss-birthdate" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Place of Birth</label>
+          <input class="form-input" id="edit-ss-birthplace" placeholder="City, Country">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Faction / Stable</label>
+        <input class="form-input" id="edit-ss-faction" placeholder="Faction name or leave blank">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-select" id="edit-ss-status">
+          <option value="Active">Active</option>
+          <option value="Injured">Injured</option>
+          <option value="Suspended">Suspended</option>
+          <option value="Released">Released</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bio Notes</label>
+        <textarea class="form-textarea" id="edit-ss-bio" placeholder="Character notes, career highlights..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" onclick="deleteSuperstar()">Delete</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-edit-superstar')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEditSuperstar()">Save Changes</button>
     </div>
   </div>
 </div>
@@ -1673,6 +1751,7 @@ function showPage(name) {
       l.classList.add('active');
     }
   });
+  if (name === 'championships') renderChampionships();
   window.scrollTo(0,0);
 }
 
@@ -1871,19 +1950,30 @@ function renderDashboard() {
   }).join('');
 }
 
+function champCard(c, brand) {
+  let daysHtml = '';
+  if (!c.is_vacant && c.current_champion_name && c.reign_start) {
+    const start = new Date(c.reign_start);
+    const now = new Date();
+    const days = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+    daysHtml = `<div class="champ-card-meta" style="color:var(--roh)">${days} day${days !== 1 ? 's' : ''} as champion</div>`;
+  }
+  return `<div class="champ-card ${brand}">
+    <div class="champ-card-label">${c.name}</div>
+    ${c.is_vacant || !c.current_champion_name
+      ? `<div class="champ-card-vacant">Vacant — Tournament Ongoing</div>`
+      : `<div class="champ-card-name">${c.current_champion_name}</div>`}
+    ${daysHtml}
+    ${c.next_challenger ? `<div class="champ-card-meta">${c.next_challenger}</div>` : ''}
+  </div>`;
+}
+
 function renderChampGrid(brand, elId) {
   const champs = allChampionships.filter(c => c.brand_id === brand);
   const el = document.getElementById(elId);
   if (!el) return;
   if (!champs.length) { el.innerHTML = '<p style="color:var(--muted);font-size:12px">No championships set up yet.</p>'; return; }
-  el.innerHTML = champs.map(c => `
-    <div class="champ-card ${brand}">
-      <div class="champ-card-label">${c.name}</div>
-      ${c.is_vacant || !c.current_champion_name
-        ? `<div class="champ-card-vacant">Vacant — Tournament Ongoing</div>`
-        : `<div class="champ-card-name">${c.current_champion_name}</div>`}
-      ${c.next_challenger ? `<div class="champ-card-meta">Next: ${c.next_challenger}</div>` : ''}
-    </div>`).join('');
+  el.innerHTML = champs.map(c => champCard(c, brand)).join('');
 }
 
 // ═══════════════════════════════════════
@@ -2669,8 +2759,164 @@ function brandName(id) {
   return id || '—';
 }
 
+// ═══════════════════════════════════════
+// EDIT SUPERSTAR
+// ═══════════════════════════════════════
 function editSuperstar(id) {
-  toast('Edit feature coming soon', '');
+  const s = allSuperstars.find(x => x.id === id);
+  if (!s) return;
+  const faction = allFactions.find(f => f.id === s.faction_id);
+  document.getElementById('edit-ss-id').value       = s.id;
+  document.getElementById('edit-ss-name').value     = s.name || '';
+  document.getElementById('edit-ss-brand').value    = s.brand_id || 'raw';
+  document.getElementById('edit-ss-division').value = s.division || '';
+  document.getElementById('edit-ss-alignment').value= s.alignment || 'Face';
+  document.getElementById('edit-ss-birthdate').value= s.birthdate ? s.birthdate.split('T')[0] : '';
+  document.getElementById('edit-ss-birthplace').value= s.birthplace || '';
+  document.getElementById('edit-ss-faction').value  = faction ? faction.name : '';
+  document.getElementById('edit-ss-status').value   = s.status || 'Active';
+  document.getElementById('edit-ss-bio').value      = s.bio_note || '';
+  openModal('modal-edit-superstar');
+}
+
+async function saveEditSuperstar() {
+  const id        = parseInt(document.getElementById('edit-ss-id').value);
+  const name      = document.getElementById('edit-ss-name').value.trim();
+  const brand     = document.getElementById('edit-ss-brand').value;
+  const division  = document.getElementById('edit-ss-division').value.trim();
+  const alignment = document.getElementById('edit-ss-alignment').value;
+  const birthdate = document.getElementById('edit-ss-birthdate').value;
+  const birthplace= document.getElementById('edit-ss-birthplace').value.trim();
+  const factionName= document.getElementById('edit-ss-faction').value.trim();
+  const status    = document.getElementById('edit-ss-status').value;
+  const bio       = document.getElementById('edit-ss-bio').value.trim();
+
+  if (!name) { toast('Name is required', 'error'); return; }
+
+  let faction_id = null;
+  if (factionName) {
+    let f = allFactions.find(x => x.name.toLowerCase() === factionName.toLowerCase());
+    if (!f) {
+      const { data } = await db.from('factions').insert({ name: factionName, brand_id: brand }).select().single();
+      f = data;
+      if (f) allFactions.push(f);
+    }
+    if (f) faction_id = f.id;
+  }
+
+  const { error } = await db.from('superstars').update({
+    name, brand_id: brand, division: division || null,
+    alignment, faction_id,
+    birthdate: birthdate || null,
+    birthplace: birthplace || null,
+    bio_note: bio || null,
+    status,
+  }).eq('id', id);
+
+  if (error) { toast('Error: ' + error.message, 'error'); return; }
+  closeModal('modal-edit-superstar');
+  toast(`${name} updated!`, 'success');
+  await loadAll();
+  showProfile(id);
+}
+
+async function deleteSuperstar() {
+  const id = parseInt(document.getElementById('edit-ss-id').value);
+  const s  = allSuperstars.find(x => x.id === id);
+  if (!confirm(`Delete ${s?.name}? This cannot be undone.`)) return;
+  await db.from('superstars').delete().eq('id', id);
+  closeModal('modal-edit-superstar');
+  toast(`${s?.name} deleted`, '');
+  await loadAll();
+  showPage('roster');
+}
+
+// ═══════════════════════════════════════
+// CHAMPIONSHIPS PAGE
+// ═══════════════════════════════════════
+async function renderChampionships() {
+  const el = document.getElementById('championships-content');
+  if (!el) return;
+
+  const brands = [
+    { id: 'raw',       label: 'RAW',          color: 'var(--raw)', pillClass: 'pill-raw' },
+    { id: 'smackdown', label: 'SMACKDOWN',     color: 'var(--sd)',  pillClass: 'pill-sd'  },
+    { id: 'roh',       label: 'RING OF HONOR', color: 'var(--roh)', pillClass: 'pill-roh' },
+  ];
+
+  let html = '';
+  for (const brand of brands) {
+    const champs = allChampionships.filter(c => c.brand_id === brand.id);
+    if (!champs.length) continue;
+
+    html += `<div style="margin-bottom:40px">
+      <div class="section-title" style="color:${brand.color}">${brand.label}</div>`;
+
+    for (const c of champs) {
+      const { data: history } = await db.from('championship_history')
+        .select('*')
+        .eq('championship_id', c.id)
+        .order('date_won', { ascending: true });
+
+      const reigns = history || [];
+
+      let daysHeld = '';
+      if (!c.is_vacant && c.current_champion_name && c.reign_start) {
+        const days = Math.floor((new Date() - new Date(c.reign_start)) / (1000*60*60*24));
+        daysHeld = `<span style="color:var(--roh);font-size:12px">${days} days</span>`;
+      }
+
+      html += `<div class="card" style="margin-bottom:12px;overflow:hidden">
+        <div style="height:3px;background:${brand.color}"></div>
+        <div style="padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div>
+            <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">${c.name}</div>
+            ${c.is_vacant || !c.current_champion_name
+              ? `<div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;color:var(--muted);font-style:italic">Vacant</div>`
+              : `<div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;color:#fff">${c.current_champion_name}</div>`}
+          </div>
+          <div style="text-align:right">
+            ${daysHeld}
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">${reigns.length} reign${reigns.length !== 1 ? 's' : ''}</div>
+          </div>
+        </div>`;
+
+      if (reigns.length) {
+        html += `<table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead>
+            <tr>
+              <th style="padding:7px 12px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">#</th>
+              <th style="padding:7px 12px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Champion</th>
+              <th style="padding:7px 12px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Won From</th>
+              <th style="padding:7px 12px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Method</th>
+              <th style="padding:7px 12px;text-align:right;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Days</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${reigns.map((r, i) => {
+              const days = r.days_held || (r.date_lost
+                ? Math.floor((new Date(r.date_lost) - new Date(r.date_won)) / (1000*60*60*24))
+                : Math.floor((new Date() - new Date(r.date_won)) / (1000*60*60*24)));
+              return `<tr style="border-bottom:1px solid #1a1a1a">
+                <td style="padding:8px 12px;color:var(--muted)">${i+1}</td>
+                <td style="padding:8px 12px;font-weight:600;color:#fff">${r.champion_name}</td>
+                <td style="padding:8px 12px;color:var(--muted)">${r.won_from || '—'}</td>
+                <td style="padding:8px 12px;color:var(--muted)">${r.method || '—'}</td>
+                <td style="padding:8px 12px;text-align:right;font-family:'Barlow Condensed',sans-serif;font-weight:700;color:${brand.color}">${days}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>`;
+      } else {
+        html += `<div style="padding:16px;color:var(--muted);font-size:12px;font-style:italic">No reigns recorded yet — title will be awarded at the upcoming PPV.</div>`;
+      }
+
+      html += `</div>`;
+    }
+    html += `</div>`;
+  }
+
+  el.innerHTML = html || '<div class="empty-state"><h3>No championships found</h3></div>';
 }
 
 // ═══════════════════════════════════════
