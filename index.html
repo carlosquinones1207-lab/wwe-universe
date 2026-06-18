@@ -2025,28 +2025,37 @@ function superstarAvatar(name, size=40) {
   const colors = ['#cc0000','#0055cc','#c8a000','#22c55e','#a855f7','#f59e0b','#ef4444','#3b82f6'];
   const color = colors[name.charCodeAt(0) % colors.length];
 
-  // Try multiple extensions
-  const base = 'images/superstars/' + name.toLowerCase()
-    .replace(/\./g, '')
-    .replace(/'/g, '')
-    .replace(/\s+/g, '-');
+  // Generate multiple filename variations to try
+  const base = name.replace(/\./g,'').replace(/'/g,'').trim();
+  const variants = [
+    base.replace(/\s+/g,'-'),           // Roman-Reigns
+    base.replace(/\s+/g,'_'),           // Roman_Reigns
+    base.toLowerCase().replace(/\s+/g,'-'), // roman-reigns
+    base.toLowerCase().replace(/\s+/g,'_'), // roman_reigns
+    base.replace(/\s+/g,''),            // RomanReigns
+  ];
+  const exts = ['png','jpg','jpeg','webp','avif'];
+  const folder = 'images/superstarimages/';
 
-  const id = 'avatar-' + name.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
+  // Build all src attempts
+  const allSrcs = [];
+  for (const v of variants) {
+    for (const e of exts) {
+      allSrcs.push(`${folder}${v}.${e}`);
+    }
+  }
 
-  return `<div id="${id}" style="width:${size}px;height:${size}px;border-radius:50%;overflow:hidden;flex-shrink:0;background:${color}22;border:1px solid ${color}44;display:flex;align-items:center;justify-content:center">
-    <img src="${base}.png" alt="${name}"
+  const id = 'img_' + Math.random().toString(36).slice(2,8);
+  const srcsJson = JSON.stringify(allSrcs);
+
+  return `<div style="width:${size}px;height:${size}px;border-radius:50%;overflow:hidden;flex-shrink:0;background:${color}22;border:1px solid ${color}44;display:flex;align-items:center;justify-content:center">
+    <img id="${id}" src="${allSrcs[0]}" alt="${name}"
       style="width:100%;height:100%;object-fit:cover;display:block"
-      onerror="
-        var t=this;
-        if(t.src.endsWith('.png')){t.src=t.src.replace('.png','.jpg');}
-        else if(t.src.endsWith('.jpg')){t.src=t.src.replace('.jpg','.jpeg');}
-        else if(t.src.endsWith('.jpeg')){t.src=t.src.replace('.jpeg','.webp');}
-        else if(t.src.endsWith('.webp')){t.src=t.src.replace('.webp','.avif');}
-        else{t.style.display='none';t.nextElementSibling.style.display='flex';}
-      "
+      onerror="(function(el){var srcs=${srcsJson};var i=srcs.indexOf(el.src)+1;if(i<srcs.length){el.src=srcs[i];}else{el.style.display='none';el.nextElementSibling.style.display='flex';}})(this)"
     >
     <div style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:${Math.floor(size*0.35)}px;color:${color}">${initials}</div>
   </div>`;
+}
 }
 
 // ═══════════════════════════════════════
