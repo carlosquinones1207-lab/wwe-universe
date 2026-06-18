@@ -440,26 +440,27 @@ body {
   border-bottom: 1px solid var(--border);
 }
 .brand-card {
-  padding: 24px 20px;
+  padding: 28px 20px;
   border-right: 1px solid var(--border);
   cursor: pointer;
   transition: background 0.15s;
   text-decoration: none;
   display: block;
+  text-align: center;
 }
 .brand-card:last-child { border-right: none; }
 .brand-card:hover { background: rgba(255,255,255,0.02); }
 .brand-card-name {
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 900;
-  font-size: 28px;
-  letter-spacing: 3px;
+  font-size: 36px;
+  letter-spacing: 4px;
   text-transform: uppercase;
 }
 .raw-color  { color: var(--raw); }
 .sd-color   { color: var(--sd);  }
 .roh-color  { color: var(--roh); }
-.brand-card-gm { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.brand-card-gm { font-size: 12px; color: var(--muted); margin-top: 6px; }
 .brand-card-identity { font-size: 11px; color: var(--muted2); margin-top: 4px; font-style: italic; }
 
 .champ-grid {
@@ -1220,19 +1221,22 @@ body {
   </div>
   <div class="brand-cards">
     <div class="brand-card" onclick="showPage('shows')">
-      <img src="images/raw.png" alt="RAW" style="height:48px;object-fit:contain;margin-bottom:8px;display:block">
-      <div class="brand-card-gm">GM: Vince McMahon</div>
-      <div class="brand-card-identity">Dark / Ruthless Aggression</div>
+      <img src="images/raw.png" alt="RAW" style="height:70px;object-fit:contain;margin:0 auto 10px;display:block">
+      <div class="brand-card-name raw-color" style="text-align:center">RAW</div>
+      <div class="brand-card-gm" style="text-align:center">GM: Vince McMahon</div>
+      <div class="brand-card-identity" style="text-align:center">Dark / Ruthless Aggression</div>
     </div>
     <div class="brand-card" onclick="showPage('shows')">
-      <img src="images/smackdown.png" alt="SmackDown" style="height:48px;object-fit:contain;margin-bottom:8px;display:block">
-      <div class="brand-card-gm">GM: Theodore Long</div>
-      <div class="brand-card-identity">Athletic / Sport-Focused</div>
+      <img src="images/smackdown.png" alt="SmackDown" style="height:70px;object-fit:contain;margin:0 auto 10px;display:block">
+      <div class="brand-card-name sd-color" style="text-align:center">SmackDown</div>
+      <div class="brand-card-gm" style="text-align:center">GM: Theodore Long</div>
+      <div class="brand-card-identity" style="text-align:center">Athletic / Sport-Focused</div>
     </div>
     <div class="brand-card" onclick="showPage('shows')">
-      <img src="images/roh.png" alt="Ring of Honor" style="height:48px;object-fit:contain;margin-bottom:8px;display:block">
-      <div class="brand-card-gm">Commissioner: Jim Cornette</div>
-      <div class="brand-card-identity">Honor / Technical Prestige</div>
+      <img src="images/roh.png" alt="Ring of Honor" style="height:70px;object-fit:contain;margin:0 auto 10px;display:block">
+      <div class="brand-card-name roh-color" style="text-align:center">Ring of Honor</div>
+      <div class="brand-card-gm" style="text-align:center">Commissioner: Jim Cornette</div>
+      <div class="brand-card-identity" style="text-align:center">Honor / Technical Prestige</div>
     </div>
   </div>
   <div class="container">
