@@ -1220,17 +1220,17 @@ body {
   </div>
   <div class="brand-cards">
     <div class="brand-card" onclick="showPage('shows')">
-      <div class="brand-card-name raw-color">RAW</div>
+      <img src="images/raw.png" alt="RAW" style="height:48px;object-fit:contain;margin-bottom:8px;display:block">
       <div class="brand-card-gm">GM: Vince McMahon</div>
       <div class="brand-card-identity">Dark / Ruthless Aggression</div>
     </div>
     <div class="brand-card" onclick="showPage('shows')">
-      <div class="brand-card-name sd-color">SmackDown</div>
+      <img src="images/smackdown.png" alt="SmackDown" style="height:48px;object-fit:contain;margin-bottom:8px;display:block">
       <div class="brand-card-gm">GM: Theodore Long</div>
       <div class="brand-card-identity">Athletic / Sport-Focused</div>
     </div>
     <div class="brand-card" onclick="showPage('shows')">
-      <div class="brand-card-name roh-color">Ring of Honor</div>
+      <img src="images/roh.png" alt="Ring of Honor" style="height:48px;object-fit:contain;margin-bottom:8px;display:block">
       <div class="brand-card-gm">Commissioner: Jim Cornette</div>
       <div class="brand-card-identity">Honor / Technical Prestige</div>
     </div>
@@ -1253,7 +1253,7 @@ body {
     <div class="section-title">Shows</div>
     <div class="shows-grid">
       <div class="show-card raw" onclick="showRosterFor('raw')">
-        <div class="show-card-name raw-color">RAW</div>
+        <img src="images/raw.png" alt="RAW" style="height:56px;object-fit:contain;margin-bottom:12px;display:block">
         <div class="show-card-gm">GM: Vince McMahon</div>
         <div class="show-card-identity">"Dark / Ruthless Aggression"</div>
         <div class="show-card-stat">
@@ -1272,7 +1272,7 @@ body {
         </div>
       </div>
       <div class="show-card sd" onclick="showRosterFor('smackdown')">
-        <div class="show-card-name sd-color">SmackDown</div>
+        <img src="images/smackdown.png" alt="SmackDown" style="height:56px;object-fit:contain;margin-bottom:12px;display:block">
         <div class="show-card-gm">GM: Theodore Long</div>
         <div class="show-card-identity">"Athletic / Sport-Focused"</div>
         <div class="show-card-stat">
@@ -1291,7 +1291,7 @@ body {
         </div>
       </div>
       <div class="show-card roh" onclick="showRosterFor('roh')">
-        <div class="show-card-name roh-color">Ring of Honor</div>
+        <img src="images/roh.png" alt="Ring of Honor" style="height:56px;object-fit:contain;margin-bottom:12px;display:block">
         <div class="show-card-gm">Commissioner: Jim Cornette</div>
         <div class="show-card-identity">"Honor / Technical Prestige"</div>
         <div class="show-card-stat">
@@ -1961,6 +1961,22 @@ function renderDashboard() {
   }).join('');
 }
 
+// ── BELT IMAGES MAP ──────────────────────────────────
+const BELT_IMAGES = {
+  'WWE Undisputed Championship':    'images/WWE_Undisputed_Championship.webp',
+  'European Championship':          'images/WWE_European_Championship.png',
+  'World Tag Team Championship':    'images/WWF_World_Tag_Team_Championship_1998-2002.webp',
+  'WWE Women\'s Championship':      'images/Womens_Champion.png',
+  'Women\'s IC Championship':       'images/WWE_Women%27s_Intercontinental_Championship.webp',
+  'World Heavyweight Championship': 'images/WWE_Heavyweight.png',
+  'US Championship':                'images/WWE_US_Championship.webp',
+  'World Divas Championship':       'images/Divas_Championship.png',
+  'Women\'s US Championship':       'images/WWE_Women%27s_United_States_Championship_PNG.webp',
+  'ROH World Championship':         'images/Rohworld.webp',
+  'ROH Pure Championship':          'images/ROH_Pure.webp',
+  'ROH World Tag Team Championship':'images/Classic_ROH_tag.webp',
+};
+
 function champCard(c, brand) {
   let daysHtml = '';
   if (!c.is_vacant && c.current_champion_name && c.reign_start) {
@@ -1969,7 +1985,9 @@ function champCard(c, brand) {
     const days = Math.floor((now - start) / (1000 * 60 * 60 * 24));
     daysHtml = `<div class="champ-card-meta" style="color:var(--roh)">${days} day${days !== 1 ? 's' : ''} as champion</div>`;
   }
+  const beltImg = BELT_IMAGES[c.name];
   return `<div class="champ-card ${brand}">
+    ${beltImg ? `<img src="${beltImg}" alt="${c.name}" style="width:100%;max-height:80px;object-fit:contain;margin-bottom:10px;display:block">` : ''}
     <div class="champ-card-label">${c.name}</div>
     ${c.is_vacant || !c.current_champion_name
       ? `<div class="champ-card-vacant">Vacant — Tournament Ongoing</div>`
@@ -3218,11 +3236,14 @@ async function renderChampionships() {
       html += `<div class="card" style="margin-bottom:12px;overflow:hidden">
         <div style="height:3px;background:${brand.color}"></div>
         <div style="padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px">
-          <div>
-            <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">${c.name}</div>
-            ${c.is_vacant || !c.current_champion_name
-              ? `<div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;color:var(--muted);font-style:italic">Vacant</div>`
-              : `<div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;color:#fff">${c.current_champion_name}</div>`}
+          <div style="display:flex;align-items:center;gap:16px;flex:1">
+            ${BELT_IMAGES[c.name] ? `<img src="${BELT_IMAGES[c.name]}" alt="${c.name}" style="height:60px;width:auto;object-fit:contain;flex-shrink:0">` : ''}
+            <div>
+              <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">${c.name}</div>
+              ${c.is_vacant || !c.current_champion_name
+                ? `<div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;color:var(--muted);font-style:italic">Vacant</div>`
+                : `<div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;color:#fff">${c.current_champion_name}</div>`}
+            </div>
           </div>
           <div style="text-align:right">
             ${daysHeld}
