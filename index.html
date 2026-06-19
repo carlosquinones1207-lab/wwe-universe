@@ -2368,18 +2368,18 @@ function renderDashboard() {
 
 // ── BELT IMAGES MAP ──────────────────────────────────
 const BELT_IMAGES = {
-  'WWE Undisputed Championship':    'images/WWE_Undisputed_Championship.webp',
+  'WWE Undisputed Championship':    'images/WWE_Undisputed_Championship.png',
   'European Championship':          'images/WWE_European_Championship.png',
-  'World Tag Team Championship':    'images/WWF_World_Tag_Team_Championship_1998-2002.webp',
+  'World Tag Team Championship':    'images/WWF_World_Tag_Team_Championship_1998-2002.png',
   'WWE Women\'s Championship':      'images/Womens_Champion.png',
   'Women\'s IC Championship':       'images/WWE_Women_Intercontinental_Championship.webp',
   'World Heavyweight Championship': 'images/WWE_Heavyweight.png',
-  'US Championship':                'images/WWE_US_Championship.webp',
+  'US Championship':                'images/WWE_US_Championship.png',
   'World Divas Championship':       'images/Divas_Championship.png',
   'Women\'s US Championship':       'images/WWE_Women_United_States_Championship_PNG.webp',
-  'ROH World Championship':         'images/Rohworld.webp',
-  'ROH Pure Championship':          'images/ROH_Pure.webp',
-  'ROH World Tag Team Championship':'images/Classic_ROH_tag.webp',
+  'ROH World Championship':         'images/Rohworld.png',
+  'ROH Pure Championship':          'images/ROH_Pure.png',
+  'ROH World Tag Team Championship':'images/Classic_ROH_tag.png',
 };
 
 function champCard(c, brand) {
@@ -2392,7 +2392,7 @@ function champCard(c, brand) {
   }
   const beltImg = BELT_IMAGES[c.name];
   return `<div class="champ-card ${brand}">
-    ${beltImg ? `<img src="${beltImg}" alt="${c.name}" style="width:100%;max-height:80px;object-fit:contain;margin-bottom:10px;display:block;mix-blend-mode:screen">` : ''}
+    ${beltImg ? `<img src="${beltImg}" alt="${c.name}" style="width:100%;max-height:80px;object-fit:contain;margin-bottom:10px;display:block">` : ''}
     <div class="champ-card-label">${c.name}</div>
     ${c.is_vacant || !c.current_champion_name
       ? `<div class="champ-card-vacant">Vacant — Tournament Ongoing</div>`
@@ -3871,7 +3871,7 @@ async function renderChampionships() {
         <div style="height:3px;background:${brand.color}"></div>
         <div style="padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px">
           <div style="display:flex;align-items:center;gap:16px;flex:1">
-            ${BELT_IMAGES[c.name] ? `<img src="${BELT_IMAGES[c.name]}" alt="${c.name}" style="height:60px;width:auto;object-fit:contain;flex-shrink:0;mix-blend-mode:screen">` : ''}
+            ${BELT_IMAGES[c.name] ? `<img src="${BELT_IMAGES[c.name]}" alt="${c.name}" style="height:60px;width:auto;object-fit:contain;flex-shrink:0">` : ''}
             <div>
               <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">${c.name}</div>
               ${c.is_vacant || !c.current_champion_name
