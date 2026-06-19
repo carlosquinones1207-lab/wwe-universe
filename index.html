@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WWE 2K26 — Universe Mode</title>
+<title>WWE 2K26 — Universe Mode v3</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -3926,7 +3926,18 @@ async function renderChampionships() {
 // ═══════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════
-loadAll();
+async function safeLoadAll() {
+  try {
+    await loadAll();
+  } catch(e) {
+    console.error('loadAll error:', e);
+  } finally {
+    const ls = document.getElementById('loading-screen');
+    if (ls) ls.style.display = 'none';
+  }
+}
+
+safeLoadAll();
 </script>
 </body>
 </html>
