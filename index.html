@@ -2711,6 +2711,7 @@ function renderEpisodes() {
               <div style="font-size:11px;color:var(--muted);margin-top:2px">${matchCount} match${matchCount !== 1 ? 'es' : ''}</div>
             </div>
             <div style="color:var(--muted);font-size:18px;flex-shrink:0">›</div>
+            <button onclick="event.stopPropagation();deleteEpisode(${ep.id},${ep.episode_number},'${ep.brand_id}')" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:14px;padding:4px;flex-shrink:0" title="Delete episode">🗑</button>
           </div>
         </div>`;
       }
@@ -2718,6 +2719,14 @@ function renderEpisodes() {
     html += '</div>';
   }
   el.innerHTML = html;
+}
+
+async function deleteEpisode(id, num, brand) {
+  if (!confirm(`Delete ${brandName(brand)} Episode ${num}? This will also delete all match results for this episode.`)) return;
+  await db.from('matches').delete().eq('episode_id', id);
+  await db.from('episodes').delete().eq('id', id);
+  toast('Episode deleted', '');
+  await loadAll();
 }
 
 function openEpisodePanel(episodeId) {
