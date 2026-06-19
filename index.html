@@ -6,7 +6,7 @@
 <title>WWE 2K26 — Universe Mode</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════
    DESIGN TOKENS
@@ -45,11 +45,38 @@ html { scroll-behavior: smooth; }
 body {
   background: var(--black);
   color: var(--text);
-  font-family: 'Barlow', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 14px;
   line-height: 1.5;
   min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(204,0,0,0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(0,85,204,0.03) 0%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
 }
+
+/* Magazine typography */
+.mag-headline {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.5px;
+}
+.mag-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+.mag-rule {
+  height: 3px;
+  background: var(--raw);
+  margin-bottom: 16px;
+}
+.mag-rule.sd  { background: var(--sd); }
+.mag-rule.roh { background: var(--roh); }
+.mag-rule.multi { background: linear-gradient(90deg, var(--raw), var(--sd), var(--roh)); }
 
 /* ═══════════════════════════════════════
    LOADING SCREEN
@@ -376,63 +403,150 @@ body {
    DASHBOARD
 ═══════════════════════════════════════ */
 .dash-hero {
-  background: linear-gradient(160deg, #0d0d0d 0%, #1a0000 40%, #0d0508 70%, #0d0d0d 100%);
+  background: var(--dark);
   border-bottom: 1px solid var(--border);
-  padding: 48px 20px 40px;
-  text-align: center;
+  padding: 0;
   position: relative;
   overflow: hidden;
 }
-.dash-hero::before {
-  content: '';
-  position: absolute;
-  top: -50%; left: -50%;
-  width: 200%; height: 200%;
-  background: radial-gradient(ellipse at center, rgba(204,0,0,0.04) 0%, transparent 60%);
-  pointer-events: none;
-}
-.dash-hero-title {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 900;
-  font-size: clamp(48px, 10vw, 88px);
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  line-height: 0.9;
-  color: #fff;
-}
-.dash-hero-title .accent { color: var(--raw); }
-.dash-hero-sub {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 14px;
-  letter-spacing: 5px;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-top: 10px;
-}
-.dash-hero-state {
-  display: inline-flex;
+.dash-masthead {
+  border-bottom: 1px solid var(--border);
+  padding: 16px 32px;
+  display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 20px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border2);
-  padding: 8px 20px;
+  justify-content: space-between;
+  gap: 16px;
+}
+.dash-masthead-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  font-size: clamp(28px, 4vw, 48px);
+  color: #fff;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+.dash-masthead-title span { color: var(--raw); }
+.dash-masthead-meta {
+  text-align: right;
+}
+.dash-masthead-issue {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 13px;
+  font-size: 11px;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--muted);
 }
-.dash-hero-state .dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
+.dash-masthead-phase {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  color: var(--roh);
+  margin-top: 2px;
+}
+.dash-feature {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  min-height: 200px;
+}
+.dash-feature-main {
+  padding: 28px 32px;
+  border-right: 1px solid var(--border);
+  position: relative;
+}
+.dash-feature-main::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
   background: var(--raw);
-  animation: pulse 2s ease-in-out infinite;
 }
-@keyframes pulse {
-  0%,100% { opacity: 1; }
-  50% { opacity: 0.3; }
+.dash-feature-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--raw);
+  margin-bottom: 10px;
 }
+.dash-feature-headline {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  font-size: clamp(22px, 3vw, 32px);
+  color: #fff;
+  line-height: 1.15;
+  margin-bottom: 10px;
+}
+.dash-feature-deck {
+  font-size: 13px;
+  color: #aaa;
+  line-height: 1.6;
+  max-width: 500px;
+}
+.dash-feature-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.dash-lookahead {
+  padding: 24px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  background: var(--card);
+}
+.dash-lookahead-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.dash-lookahead-name {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 22px;
+  color: #fff;
+  line-height: 1.1;
+}
+.dash-lookahead-date {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.dash-lookahead-main {
+  font-size: 12px;
+  color: #aaa;
+  line-height: 1.5;
+  border-left: 2px solid var(--roh);
+  padding-left: 10px;
+}
+.dash-lookahead-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--roh);
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  margin-top: 4px;
+}
+.dash-lookahead-cta:hover { color: #fff; }
 
 .brand-cards {
   display: grid;
@@ -1177,8 +1291,214 @@ body {
   .draft-board { grid-template-columns: 1fr; }
   .draft-pool-panel { position: static; max-height: 300px; }
   .profile-hero-content { grid-template-columns: 1fr; }
+  .dash-feature { grid-template-columns: 1fr; }
+  .dash-feature-main { border-right: none; border-bottom: 1px solid var(--border); }
+  .dash-masthead { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .dash-masthead-meta { text-align: left; }
 }
-</style>
+/* ═══════════════════════════════════════
+   MAGAZINE
+═══════════════════════════════════════ */
+.mag-nav {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--dark);
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0 20px;
+}
+.mag-nav::-webkit-scrollbar { display: none; }
+.mag-edition-tab {
+  padding: 12px 18px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+.mag-edition-tab:hover { color: var(--text); }
+.mag-edition-tab.active { color: #fff; border-bottom-color: var(--raw); }
+
+.mag-cover {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+.mag-cover-header {
+  border-bottom: 4px solid var(--text);
+  padding-bottom: 12px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.mag-cover-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  font-size: clamp(32px, 6vw, 56px);
+  color: #fff;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+.mag-cover-title span { color: var(--raw); }
+.mag-cover-edition {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  text-transform: uppercase;
+  text-align: right;
+  flex-shrink: 0;
+}
+.mag-cover-rule {
+  height: 1px;
+  background: var(--border2);
+  margin-bottom: 32px;
+}
+.mag-cover-grid {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+.mag-cover-story h2 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  font-size: clamp(24px, 4vw, 40px);
+  color: #fff;
+  line-height: 1.1;
+  margin-bottom: 16px;
+  letter-spacing: -0.5px;
+}
+.mag-cover-story p {
+  font-size: 14px;
+  color: #bbb;
+  line-height: 1.75;
+}
+.mag-sidebar {}
+.mag-sidebar-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.mag-sidebar-head {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.mag-sidebar-body { padding: 14px; }
+.mag-sidebar-body p { font-size: 12px; color: #aaa; line-height: 1.6; }
+
+.mag-brand-recaps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  border-top: 1px solid var(--border);
+  padding-top: 28px;
+}
+.mag-brand-recap {}
+.mag-brand-recap-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid currentColor;
+}
+.mag-brand-recap p {
+  font-size: 12px;
+  color: #aaa;
+  line-height: 1.65;
+}
+.mag-lookahead {
+  margin-top: 32px;
+  padding: 20px 24px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  border-left: 4px solid var(--roh);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.mag-lookahead-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--roh);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.mag-lookahead-text {
+  font-size: 13px;
+  color: #ccc;
+  line-height: 1.5;
+}
+.mag-editor-note {
+  margin-top: 20px;
+  padding: 16px 20px;
+  background: rgba(200,160,0,0.05);
+  border: 1px solid var(--roh-dim);
+  border-radius: var(--radius);
+  font-size: 12px;
+  color: #aaa;
+  font-style: italic;
+  line-height: 1.6;
+}
+.mag-editor-note strong {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--roh);
+  font-style: normal;
+  display: block;
+  margin-bottom: 4px;
+}
+.mag-draft-banner {
+  background: var(--raw-dim);
+  border-bottom: 1px solid var(--raw);
+  padding: 8px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--raw);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+@media (max-width: 768px) {
+  .mag-cover-grid { grid-template-columns: 1fr; }
+  .mag-brand-recaps { grid-template-columns: 1fr; }
+  .mag-cover-header { flex-direction: column; align-items: flex-start; }
+}
 </head>
 <body>
 
@@ -1196,6 +1516,7 @@ body {
   <div class="nav-logo">WWE <span>2K26</span></div>
   <div class="nav-links">
     <button class="nav-link active" onclick="showPage('dashboard')">Dashboard</button>
+    <button class="nav-link" onclick="showPage('magazine')">📰 Magazine</button>
     <button class="nav-link" onclick="showPage('shows')">Shows</button>
     <button class="nav-link" onclick="showPage('roster')">Roster</button>
     <button class="nav-link" onclick="showPage('championships')">Championships</button>
@@ -1212,11 +1533,22 @@ body {
 <!-- ══════════ DASHBOARD ══════════ -->
 <div id="page-dashboard" class="page active">
   <div class="dash-hero">
-    <div class="dash-hero-title">WWE <span class="accent">2K26</span></div>
-    <div class="dash-hero-sub">Custom Universe Mode</div>
-    <div class="dash-hero-state">
-      <div class="dot"></div>
-      <span id="dash-state-text">Loading...</span>
+    <div class="dash-masthead">
+      <div class="dash-masthead-title">WWE <span>2K26</span> <span style="font-size:0.5em;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:400;letter-spacing:3px;vertical-align:middle">UNIVERSE</span></div>
+      <div class="dash-masthead-meta">
+        <div class="dash-masthead-issue" id="dash-state-text">Loading...</div>
+        <div class="dash-masthead-phase" id="dash-phase-text"></div>
+      </div>
+    </div>
+    <div class="dash-feature">
+      <div class="dash-feature-main" id="dash-story-of-week">
+        <div class="dash-feature-label">Story of the Week</div>
+        <div class="dash-feature-headline">Loading latest episode...</div>
+      </div>
+      <div class="dash-lookahead" id="dash-lookahead">
+        <div class="dash-lookahead-label">📅 Look Ahead</div>
+        <div class="dash-lookahead-name">Loading...</div>
+      </div>
     </div>
   </div>
   <div class="brand-cards">
@@ -1246,8 +1578,44 @@ body {
     <div class="champ-grid" id="dash-sd-champs"></div>
     <div class="section-title" style="margin-top:28px">ROH Championships</div>
     <div class="champ-grid" id="dash-roh-champs"></div>
-    <div class="section-title" style="margin-top:28px">Recent Episodes</div>
-    <div id="dash-recent-episodes"></div>
+  </div>
+</div>
+
+<!-- ══════════ MAGAZINE ══════════ -->
+<div id="page-magazine" class="page">
+  <div id="magazine-content"></div>
+</div>
+
+<!-- EDITION EDITOR MODAL -->
+<div class="modal-overlay" id="modal-edition">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-header">
+      <div class="modal-title">Edit Edition</div>
+      <button class="modal-close" onclick="closeModal('modal-edition')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edition-edit-id">
+      <div class="form-group">
+        <label class="form-label">Cover Headline</label>
+        <input class="form-input" id="edition-headline" placeholder="e.g. SWERVE STUNS OKADA">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Cover Story</label>
+        <textarea class="form-textarea" id="edition-story" style="min-height:120px" placeholder="The week's main narrative..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Look Ahead</label>
+        <input class="form-input" id="edition-lookahead" placeholder="What's coming next week...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Editor's Note (Optional)</label>
+        <textarea class="form-textarea" id="edition-note" placeholder="Personal notes about this week..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-edition')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEdition()">Save Edition</button>
+    </div>
   </div>
 </div>
 
@@ -1767,6 +2135,7 @@ function showPage(name) {
   });
   if (name === 'championships') renderChampionships();
   if (name === 'generator') initGenerator();
+  if (name === 'magazine') { loadEditions().then(() => { currentEditionIndex = allEditions.length - 1; renderMagazine(); }); }
   window.scrollTo(0,0);
 }
 
@@ -1913,8 +2282,10 @@ async function loadAll() {
 
   const state = await db.from('universe_state').select('*').single();
   if (state.data) {
-    document.getElementById('dash-state-text').textContent =
-      state.data.current_week + ' — ' + state.data.current_phase;
+    const stateEl = document.getElementById('dash-state-text');
+    const phaseEl = document.getElementById('dash-phase-text');
+    if (stateEl) stateEl.textContent = state.data.current_week;
+    if (phaseEl) phaseEl.textContent = state.data.current_phase;
   }
 
   renderDashboard();
@@ -1946,23 +2317,40 @@ function renderDashboard() {
   renderChampGrid('smackdown', 'dash-sd-champs');
   renderChampGrid('roh',       'dash-roh-champs');
 
-  const recent = allEpisodes.slice(0,5);
-  const el = document.getElementById('dash-recent-episodes');
-  if (!recent.length) { el.innerHTML = '<div class="empty-state"><h3>No episodes logged yet</h3><p>Go to Episodes to log your first show.</p></div>'; return; }
-  el.innerHTML = recent.map(ep => {
-    const brandLabel = brandName(ep.brand_id);
-    const brandClass = ep.brand_id === 'smackdown' ? 'sd' : ep.brand_id;
-    return `<div class="episode-card" style="margin-bottom:8px">
-      <div class="episode-card-header" style="cursor:default">
-        <div class="episode-num">${ep.episode_number}</div>
-        <div class="episode-info">
-          <div class="episode-brand" style="color:var(--${brandClass === 'sd' ? 'sd' : brandClass})">${brandLabel}</div>
-          <div class="episode-summary">${ep.summary || 'No summary'}</div>
-        </div>
-        ${ep.avg_rating ? `<div class="episode-rating">${ep.avg_rating}★</div>` : ''}
-      </div>
-    </div>`;
-  }).join('');
+  // Story of the Week — most recent episode
+  const latest = allEpisodes[0];
+  const storyEl = document.getElementById('dash-story-of-week');
+  if (latest && storyEl) {
+    const bc = latest.brand_id === 'smackdown' ? 'sd' : latest.brand_id;
+    const brandColor = `var(--${bc})`;
+    const epMatches = allMatches.filter(m => m.episode_id === latest.id);
+    const mainEvent = epMatches.find(m => m.match_order === 'Main Event');
+    storyEl.innerHTML = `
+      <div class="dash-feature-label" style="color:${brandColor}">${brandName(latest.brand_id)} — Episode ${latest.episode_number} · ${latest.month_label || 'Month ' + latest.month_number}</div>
+      <div class="dash-feature-headline">${latest.summary || 'Episode ' + latest.episode_number}</div>
+      ${mainEvent ? `<div class="dash-feature-deck">Main Event: <strong style="color:#fff">${mainEvent.participant1} vs ${mainEvent.participant2}</strong>${mainEvent.winner ? ` — <span style="color:var(--win)">${mainEvent.winner}</span> wins` : ''} ${mainEvent.rating ? `<span style="color:var(--star)">(${mainEvent.rating}★)</span>` : ''}</div>` : ''}
+      <div class="dash-feature-brand" style="color:${brandColor}">
+        <span style="width:6px;height:6px;border-radius:50%;background:${brandColor};display:inline-block"></span>
+        ${brandName(latest.brand_id).toUpperCase()}
+        ${latest.avg_rating ? `<span style="color:var(--star);margin-left:8px">${latest.avg_rating}★ AVG</span>` : ''}
+      </div>`;
+  }
+
+  // Look Ahead — next upcoming PPV
+  const nextPPV = allPPVs.find(p => p.status === 'upcoming');
+  const lookEl = document.getElementById('dash-lookahead');
+  if (nextPPV && lookEl) {
+    const bc = nextPPV.brand_id === 'smackdown' ? 'sd' : nextPPV.brand_id || 'roh';
+    const brandColor = nextPPV.brand_id === 'all' ? 'var(--roh)' : `var(--${bc})`;
+    lookEl.innerHTML = `
+      <div class="dash-lookahead-label">📅 Look Ahead</div>
+      <div style="height:2px;background:${brandColor};margin-bottom:12px"></div>
+      <div class="dash-lookahead-name">${nextPPV.name}</div>
+      <div class="dash-lookahead-date">${nextPPV.month || '—'} · ${nextPPV.event_type || 'PPV'}</div>
+      ${nextPPV.main_event ? `<div class="dash-lookahead-main">${nextPPV.main_event}</div>` : ''}
+      ${nextPPV.note ? `<div style="font-size:11px;color:var(--muted);font-style:italic;margin-top:8px">${nextPPV.note}</div>` : ''}
+      <button class="dash-lookahead-cta" onclick="showPage('ppv')">Full Calendar →</button>`;
+  }
 }
 
 // ── BELT IMAGES MAP ──────────────────────────────────
@@ -2561,6 +2949,11 @@ async function saveEpisode() {
   closeModal('modal-episode');
   toast('Episode saved!', 'success');
   await loadAll();
+
+  // Auto-create edition when SmackDown is logged
+  if (brand === 'smackdown') {
+    await checkAndCreateEdition();
+  }
 }
 
 // ═══════════════════════════════════════
@@ -3166,8 +3559,197 @@ function brandName(id) {
 }
 
 // ═══════════════════════════════════════
-// EDIT SUPERSTAR
+// MAGAZINE
 // ═══════════════════════════════════════
+let allEditions = [];
+let currentEditionIndex = 0;
+
+async function loadEditions() {
+  const { data } = await db.from('editions').select('*').order('edition_number');
+  allEditions = data || [];
+}
+
+async function renderMagazine() {
+  if (!allEditions.length) await loadEditions();
+  if (!allEditions.length) {
+    document.getElementById('magazine-content').innerHTML = '<div class="empty-state" style="padding:80px 20px"><h3>No editions yet</h3><p>Editions are created automatically when you log a SmackDown episode.</p></div>';
+    return;
+  }
+
+  const el = document.getElementById('magazine-content');
+
+  // Build edition tabs
+  const tabs = allEditions.map((ed, i) => `
+    <button class="mag-edition-tab ${i === currentEditionIndex ? 'active' : ''}" onclick="switchEdition(${i})">
+      ${ed.status === 'draft' ? '📝 ' : ''}Ed. ${ed.edition_number} · ${ed.month_label || 'Month ' + ed.month_number}
+    </button>`).join('');
+
+  const ed = allEditions[currentEditionIndex];
+  const isDraft = ed.status === 'draft';
+
+  // Get episode summaries
+  const rawEp  = ed.raw_episode_id  ? allEpisodes.find(e => e.id === ed.raw_episode_id)  : null;
+  const sdEp   = ed.smackdown_episode_id ? allEpisodes.find(e => e.id === ed.smackdown_episode_id) : null;
+  const rohEp  = ed.roh_episode_id  ? allEpisodes.find(e => e.id === ed.roh_episode_id)  : null;
+
+  const rawSummary  = ed.raw_summary  || rawEp?.summary  || 'Episode recap not available.';
+  const sdSummary   = ed.sd_summary   || sdEp?.summary   || 'Episode recap not available.';
+  const rohSummary  = ed.roh_summary  || rohEp?.summary  || 'Episode recap not available.';
+
+  el.innerHTML = `
+    <div class="mag-nav">${tabs}</div>
+
+    ${isDraft ? `<div class="mag-draft-banner">
+      <span>⚠ DRAFT — This edition will publish once SmackDown Episode ${ed.week_number} is logged</span>
+    </div>` : ''}
+
+    <div class="mag-cover">
+      <div class="mag-cover-header">
+        <div class="mag-cover-title">WWE <span>2K26</span> Universe</div>
+        <div class="mag-cover-edition">
+          Edition No. ${ed.edition_number}<br>
+          ${ed.month_label || 'Month ' + ed.month_number} · Week ${ed.week_number}<br>
+          <span style="color:${isDraft ? 'var(--raw)' : 'var(--win)'}">${isDraft ? 'DRAFT' : 'PUBLISHED'}</span>
+        </div>
+      </div>
+      <div class="mag-cover-rule"></div>
+
+      <div class="mag-cover-grid">
+        <div class="mag-cover-story">
+          <h2>${ed.cover_headline || 'EDITION ' + ed.edition_number}</h2>
+          <p>${ed.cover_story || 'No cover story written yet. Click Edit to add one.'}</p>
+        </div>
+        <div class="mag-sidebar">
+          <div class="mag-sidebar-card">
+            <div class="mag-sidebar-head">This Week</div>
+            <div class="mag-sidebar-body">
+              <p style="margin-bottom:8px"><strong style="color:var(--raw);font-family:'Barlow Condensed',sans-serif;letter-spacing:1px">RAW</strong><br>${rawEp ? `Episode ${rawEp.episode_number}` : '—'}</p>
+              <p style="margin-bottom:8px"><strong style="color:var(--sd);font-family:'Barlow Condensed',sans-serif;letter-spacing:1px">SMACKDOWN</strong><br>${sdEp ? `Episode ${sdEp.episode_number}` : '—'}</p>
+              <p><strong style="color:var(--roh);font-family:'Barlow Condensed',sans-serif;letter-spacing:1px">ROH</strong><br>${rohEp ? `Episode ${rohEp.episode_number}` : '—'}</p>
+            </div>
+          </div>
+          <button class="btn btn-ghost" style="width:100%" onclick="openEditionEditor(${ed.id})">✏ Edit This Edition</button>
+        </div>
+      </div>
+
+      <div class="mag-brand-recaps">
+        <div class="mag-brand-recap">
+          <div class="mag-brand-recap-label" style="color:var(--raw)">RAW</div>
+          <p>${rawSummary}</p>
+        </div>
+        <div class="mag-brand-recap">
+          <div class="mag-brand-recap-label" style="color:var(--sd)">SmackDown</div>
+          <p>${sdSummary}</p>
+        </div>
+        <div class="mag-brand-recap">
+          <div class="mag-brand-recap-label" style="color:var(--roh)">Ring of Honor</div>
+          <p>${rohSummary}</p>
+        </div>
+      </div>
+
+      ${ed.look_ahead ? `<div class="mag-lookahead">
+        <div class="mag-lookahead-label">📅 Look Ahead</div>
+        <div class="mag-lookahead-text">${ed.look_ahead}</div>
+      </div>` : ''}
+
+      ${ed.editor_note ? `<div class="mag-editor-note">
+        <strong>Editor's Note</strong>
+        ${ed.editor_note}
+      </div>` : ''}
+    </div>`;
+}
+
+function switchEdition(index) {
+  currentEditionIndex = index;
+  renderMagazine();
+}
+
+function openEditionEditor(id) {
+  const ed = allEditions.find(e => e.id === id);
+  if (!ed) return;
+  document.getElementById('edition-edit-id').value = ed.id;
+  document.getElementById('edition-headline').value = ed.cover_headline || '';
+  document.getElementById('edition-story').value = ed.cover_story || '';
+  document.getElementById('edition-lookahead').value = ed.look_ahead || '';
+  document.getElementById('edition-note').value = ed.editor_note || '';
+  openModal('modal-edition');
+}
+
+async function saveEdition() {
+  const id        = parseInt(document.getElementById('edition-edit-id').value);
+  const headline  = document.getElementById('edition-headline').value.trim();
+  const story     = document.getElementById('edition-story').value.trim();
+  const lookahead = document.getElementById('edition-lookahead').value.trim();
+  const note      = document.getElementById('edition-note').value.trim();
+
+  await db.from('editions').update({
+    cover_headline: headline || null,
+    cover_story: story || null,
+    look_ahead: lookahead || null,
+    editor_note: note || null,
+  }).eq('id', id);
+
+  // Update local cache
+  const idx = allEditions.findIndex(e => e.id === id);
+  if (idx >= 0) {
+    allEditions[idx] = { ...allEditions[idx], cover_headline: headline, cover_story: story, look_ahead: lookahead, editor_note: note };
+  }
+
+  closeModal('modal-edition');
+  toast('Edition saved!', 'success');
+  renderMagazine();
+}
+
+async function checkAndCreateEdition() {
+  // Called after saving a SmackDown episode
+  // Finds the latest SmackDown episode and creates/publishes an edition
+  const sdEps = allEpisodes.filter(e => e.brand_id === 'smackdown').sort((a,b) => b.episode_number - a.episode_number);
+  if (!sdEps.length) return;
+
+  const latestSD = sdEps[0];
+  const weekNum = latestSD.episode_number;
+  const monthNum = latestSD.month_number;
+
+  // Check if edition already exists for this week
+  const existing = allEditions.find(e => e.week_number === weekNum && e.month_number === monthNum);
+  if (existing && existing.status === 'published') return;
+
+  // Find matching RAW and ROH episodes
+  const rawEp = allEpisodes.find(e => e.brand_id === 'raw' && e.episode_number === weekNum);
+  const rohEp = allEpisodes.find(e => e.brand_id === 'roh' && e.episode_number === weekNum);
+
+  const editionNum = allEditions.length + 1;
+
+  if (existing) {
+    // Update draft to published
+    await db.from('editions').update({
+      status: 'published',
+      smackdown_episode_id: latestSD.id,
+      raw_episode_id: rawEp?.id || null,
+      roh_episode_id: rohEp?.id || null,
+      published_at: new Date(),
+    }).eq('id', existing.id);
+    toast('📰 Edition ' + existing.edition_number + ' published!', 'success');
+  } else {
+    // Create new published edition
+    await db.from('editions').insert({
+      edition_number: editionNum,
+      week_number: weekNum,
+      month_number: monthNum,
+      month_label: latestSD.month_label || 'Month ' + monthNum,
+      status: 'published',
+      smackdown_episode_id: latestSD.id,
+      raw_episode_id: rawEp?.id || null,
+      roh_episode_id: rohEp?.id || null,
+      cover_headline: 'WEEK ' + weekNum + ' RESULTS',
+      cover_story: [rawEp?.summary, latestSD.summary, rohEp?.summary].filter(Boolean).join(' '),
+      published_at: new Date(),
+    });
+    toast('📰 New Edition ' + editionNum + ' created!', 'success');
+  }
+
+  await loadEditions();
+}
 function editSuperstar(id) {
   const s = allSuperstars.find(x => x.id === id);
   if (!s) return;
