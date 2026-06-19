@@ -2314,6 +2314,7 @@ function renderShowStats() {}
 // DASHBOARD
 // ═══════════════════════════════════════
 function renderDashboard() {
+  try {
   renderChampGrid('raw',       'dash-raw-champs');
   renderChampGrid('smackdown', 'dash-sd-champs');
   renderChampGrid('roh',       'dash-roh-champs');
@@ -2337,12 +2338,12 @@ function renderDashboard() {
       </div>`;
   }
 
-  // Look Ahead — next upcoming PPV
-  const nextPPV = allPPVs.find(p => p.status === 'upcoming');
+  // Look Ahead — next upcoming PPV (skip 'none' brand entries)
+  const nextPPV = allPPVs.find(p => p.status === 'upcoming' && p.brand_id !== 'none');
   const lookEl = document.getElementById('dash-lookahead');
   if (nextPPV && lookEl) {
-    const bc = nextPPV.brand_id === 'smackdown' ? 'sd' : nextPPV.brand_id || 'roh';
-    const brandColor = nextPPV.brand_id === 'all' ? 'var(--roh)' : `var(--${bc})`;
+    const bc = nextPPV.brand_id === 'smackdown' ? 'sd' : nextPPV.brand_id === 'all' ? null : nextPPV.brand_id;
+    const brandColor = !bc || bc === 'none' || bc === 'special' ? 'var(--roh)' : `var(--${bc})`;
     lookEl.innerHTML = `
       <div class="dash-lookahead-label">📅 Look Ahead</div>
       <div style="height:2px;background:${brandColor};margin-bottom:12px"></div>
@@ -2352,6 +2353,7 @@ function renderDashboard() {
       ${nextPPV.note ? `<div style="font-size:11px;color:var(--muted);font-style:italic;margin-top:8px">${nextPPV.note}</div>` : ''}
       <button class="dash-lookahead-cta" onclick="showPage('ppv')">Full Calendar →</button>`;
   }
+  } catch(e) { console.error('Dashboard render error:', e); }
 }
 
 // ── BELT IMAGES MAP ──────────────────────────────────
