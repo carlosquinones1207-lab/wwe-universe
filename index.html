@@ -1505,7 +1505,12 @@ body {
 
 <!-- LOADING -->
 <div id="loading-screen">
-  <h1>WWE <span>2K26</span></h1>
+  <div style="text-align:center">
+    <div style="display:inline-block;border:3px solid var(--raw);padding:12px 24px;margin-bottom:16px">
+      <div style="font-family:'Playfair Display',serif;font-weight:900;font-size:42px;color:#fff;letter-spacing:2px;line-height:1">WWE <span style="color:var(--raw)">2K26</span></div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:6px;color:var(--muted);text-transform:uppercase;margin-top:4px">Universe Mode</div>
+    </div>
+  </div>
   <div class="loader"></div>
 </div>
 
@@ -1514,7 +1519,10 @@ body {
 
 <!-- NAV -->
 <nav id="topnav">
-  <div class="nav-logo">WWE <span>2K26</span></div>
+  <div class="nav-logo" style="display:flex;flex-direction:column;line-height:1;padding:8px 20px 8px 0;border-right:1px solid var(--border);margin-right:12px">
+    <span style="font-family:'Playfair Display',serif;font-weight:900;font-size:16px;letter-spacing:1px;color:#fff">WWE <span style="color:var(--raw)">2K26</span></span>
+    <span style="font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-top:1px">Universe Mode</span>
+  </div>
   <div class="nav-links">
     <button class="nav-link active" onclick="showPage('dashboard')">Dashboard</button>
     <button class="nav-link" onclick="showPage('magazine')">📰 Magazine</button>
@@ -1557,19 +1565,19 @@ body {
       <img src="images/raw.png" alt="RAW" style="height:70px;object-fit:contain;margin:0 auto 10px;display:block">
       <div class="brand-card-name raw-color" style="text-align:center">RAW</div>
       <div class="brand-card-gm" style="text-align:center">GM: Vince McMahon</div>
-      <div class="brand-card-identity" style="text-align:center">Dark / Ruthless Aggression</div>
+      <div class="brand-card-identity" style="text-align:center;color:var(--raw);font-style:normal;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;font-size:12px;margin-top:6px">"No Rules. No Mercy. No Limits."</div>
     </div>
     <div class="brand-card" onclick="showPage('shows')">
       <img src="images/smackdown.png" alt="SmackDown" style="height:70px;object-fit:contain;margin:0 auto 10px;display:block">
       <div class="brand-card-name sd-color" style="text-align:center">SmackDown</div>
       <div class="brand-card-gm" style="text-align:center">GM: Theodore Long</div>
-      <div class="brand-card-identity" style="text-align:center">Athletic / Sport-Focused</div>
+      <div class="brand-card-identity" style="text-align:center;color:var(--sd);font-style:normal;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;font-size:12px;margin-top:6px">"The Proving Ground"</div>
     </div>
     <div class="brand-card" onclick="showPage('shows')">
       <img src="images/roh.png" alt="Ring of Honor" style="height:70px;object-fit:contain;margin:0 auto 10px;display:block">
       <div class="brand-card-name roh-color" style="text-align:center">Ring of Honor</div>
       <div class="brand-card-gm" style="text-align:center">Commissioner: Jim Cornette</div>
-      <div class="brand-card-identity" style="text-align:center">Honor / Technical Prestige</div>
+      <div class="brand-card-identity" style="text-align:center;color:var(--roh);font-style:normal;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;font-size:12px;margin-top:6px">"Honor Above All"</div>
     </div>
   </div>
   <div class="container">
@@ -1628,7 +1636,7 @@ body {
       <div class="show-card raw" onclick="showRosterFor('raw')">
         <img src="images/raw.png" alt="RAW" style="height:56px;object-fit:contain;margin-bottom:12px;display:block">
         <div class="show-card-gm">GM: Vince McMahon</div>
-        <div class="show-card-identity">"Dark / Ruthless Aggression"</div>
+        <div class="show-card-identity">"No Rules. No Mercy. No Limits."</div>
         <div class="show-card-stat">
           <div class="show-stat-item">
             <div class="show-stat-num" id="show-raw-count">—</div>
@@ -1647,7 +1655,7 @@ body {
       <div class="show-card sd" onclick="showRosterFor('smackdown')">
         <img src="images/smackdown.png" alt="SmackDown" style="height:56px;object-fit:contain;margin-bottom:12px;display:block">
         <div class="show-card-gm">GM: Theodore Long</div>
-        <div class="show-card-identity">"Athletic / Sport-Focused"</div>
+        <div class="show-card-identity">"The Proving Ground"</div>
         <div class="show-card-stat">
           <div class="show-stat-item">
             <div class="show-stat-num" id="show-sd-count">—</div>
@@ -1666,7 +1674,7 @@ body {
       <div class="show-card roh" onclick="showRosterFor('roh')">
         <img src="images/roh.png" alt="Ring of Honor" style="height:56px;object-fit:contain;margin-bottom:12px;display:block">
         <div class="show-card-gm">Commissioner: Jim Cornette</div>
-        <div class="show-card-identity">"Honor / Technical Prestige"</div>
+        <div class="show-card-identity">"Honor Above All"</div>
         <div class="show-card-stat">
           <div class="show-stat-item">
             <div class="show-stat-num" id="show-roh-count">—</div>
@@ -2281,6 +2289,9 @@ async function loadAll() {
   allPPVs           = ppvs.data || [];
   allTournaments    = tournaments.data || [];
 
+  // Load editions for dashboard
+  await loadEditions();
+
   const state = await db.from('universe_state').select('*').single();
   if (state.data) {
     const stateEl = document.getElementById('dash-state-text');
@@ -2319,23 +2330,23 @@ function renderDashboard() {
   renderChampGrid('smackdown', 'dash-sd-champs');
   renderChampGrid('roh',       'dash-roh-champs');
 
-  // Story of the Week — most recent episode
-  const latest = allEpisodes[0];
+  // Story of the Week — pull from latest published edition
+  const latestEdition = allEditions.length ? allEditions[allEditions.length - 1] : null;
   const storyEl = document.getElementById('dash-story-of-week');
-  if (latest && storyEl) {
-    const bc = latest.brand_id === 'smackdown' ? 'sd' : latest.brand_id;
-    const brandColor = `var(--${bc})`;
-    const epMatches = allMatches.filter(m => m.episode_id === latest.id);
-    const mainEvent = epMatches.find(m => m.match_order === 'Main Event');
-    storyEl.innerHTML = `
-      <div class="dash-feature-label" style="color:${brandColor}">${brandName(latest.brand_id)} — Episode ${latest.episode_number} · ${latest.month_label || 'Month ' + latest.month_number}</div>
-      <div class="dash-feature-headline">${latest.summary || 'Episode ' + latest.episode_number}</div>
-      ${mainEvent ? `<div class="dash-feature-deck">Main Event: <strong style="color:#fff">${mainEvent.participant1} vs ${mainEvent.participant2}</strong>${mainEvent.winner ? ` — <span style="color:var(--win)">${mainEvent.winner}</span> wins` : ''} ${mainEvent.rating ? `<span style="color:var(--star)">(${mainEvent.rating}★)</span>` : ''}</div>` : ''}
-      <div class="dash-feature-brand" style="color:${brandColor}">
-        <span style="width:6px;height:6px;border-radius:50%;background:${brandColor};display:inline-block"></span>
-        ${brandName(latest.brand_id).toUpperCase()}
-        ${latest.avg_rating ? `<span style="color:var(--star);margin-left:8px">${latest.avg_rating}★ AVG</span>` : ''}
-      </div>`;
+  if (storyEl) {
+    if (latestEdition) {
+      storyEl.innerHTML = `
+        <div class="dash-feature-label" style="color:var(--raw)">Edition No. ${latestEdition.edition_number} · ${latestEdition.month_label || 'Month ' + latestEdition.month_number} Week ${latestEdition.week_number}</div>
+        <div class="dash-feature-headline">${latestEdition.cover_headline || 'Latest Edition'}</div>
+        <div class="dash-feature-deck" style="margin-top:10px">${latestEdition.cover_story ? latestEdition.cover_story.substring(0,200) + '...' : 'No cover story yet.'}</div>
+        <button class="dash-lookahead-cta" style="margin-top:14px" onclick="showPage('magazine')">Read Full Edition →</button>`;
+    } else {
+      storyEl.innerHTML = `
+        <div class="dash-feature-label" style="color:var(--muted)">Story of the Week</div>
+        <div class="dash-feature-headline" style="color:var(--muted)">No editions yet</div>
+        <div class="dash-feature-deck">Log your first SmackDown episode to generate an edition.</div>`;
+    }
+  }
   }
 
   // Look Ahead — next upcoming PPV (skip 'none' brand entries)
@@ -2382,7 +2393,7 @@ function champCard(c, brand) {
   }
   const beltImg = BELT_IMAGES[c.name];
   return `<div class="champ-card ${brand}">
-    ${beltImg ? `<img src="${beltImg}" alt="${c.name}" style="width:100%;max-height:80px;object-fit:contain;margin-bottom:10px;display:block">` : ''}
+    ${beltImg ? `<img src="${beltImg}" alt="${c.name}" style="width:100%;max-height:80px;object-fit:contain;margin-bottom:10px;display:block;mix-blend-mode:multiply;filter:contrast(1.1)">` : ''}
     <div class="champ-card-label">${c.name}</div>
     ${c.is_vacant || !c.current_champion_name
       ? `<div class="champ-card-vacant">Vacant — Tournament Ongoing</div>`
@@ -3861,7 +3872,7 @@ async function renderChampionships() {
         <div style="height:3px;background:${brand.color}"></div>
         <div style="padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px">
           <div style="display:flex;align-items:center;gap:16px;flex:1">
-            ${BELT_IMAGES[c.name] ? `<img src="${BELT_IMAGES[c.name]}" alt="${c.name}" style="height:60px;width:auto;object-fit:contain;flex-shrink:0">` : ''}
+            ${BELT_IMAGES[c.name] ? `<img src="${BELT_IMAGES[c.name]}" alt="${c.name}" style="height:60px;width:auto;object-fit:contain;flex-shrink:0;mix-blend-mode:multiply;filter:contrast(1.1)">` : ''}
             <div>
               <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">${c.name}</div>
               ${c.is_vacant || !c.current_champion_name
