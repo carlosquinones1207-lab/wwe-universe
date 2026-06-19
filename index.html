@@ -2392,7 +2392,7 @@ function champCard(c, brand) {
   }
   const beltImg = BELT_IMAGES[c.name];
   return `<div class="champ-card ${brand}">
-    ${beltImg ? `<img src="${beltImg}" alt="${c.name}" style="width:100%;max-height:80px;object-fit:contain;margin-bottom:10px;display:block;mix-blend-mode:multiply;filter:contrast(1.1)">` : ''}
+    ${beltImg ? `<img src="${beltImg}" alt="${c.name}" style="width:100%;max-height:80px;object-fit:contain;margin-bottom:10px;display:block;mix-blend-mode:screen">` : ''}
     <div class="champ-card-label">${c.name}</div>
     ${c.is_vacant || !c.current_champion_name
       ? `<div class="champ-card-vacant">Vacant — Tournament Ongoing</div>`
@@ -3871,7 +3871,7 @@ async function renderChampionships() {
         <div style="height:3px;background:${brand.color}"></div>
         <div style="padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px">
           <div style="display:flex;align-items:center;gap:16px;flex:1">
-            ${BELT_IMAGES[c.name] ? `<img src="${BELT_IMAGES[c.name]}" alt="${c.name}" style="height:60px;width:auto;object-fit:contain;flex-shrink:0;mix-blend-mode:multiply;filter:contrast(1.1)">` : ''}
+            ${BELT_IMAGES[c.name] ? `<img src="${BELT_IMAGES[c.name]}" alt="${c.name}" style="height:60px;width:auto;object-fit:contain;flex-shrink:0;mix-blend-mode:screen">` : ''}
             <div>
               <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">${c.name}</div>
               ${c.is_vacant || !c.current_champion_name
