@@ -2908,9 +2908,10 @@ async function saveRecord(id) {
 // ═══════════════════════════════════════
 // MANUAL STANDINGS EDITOR
 // ═══════════════════════════════════════
-async function openStandingsEditor(entryId, superstarName, blockId) {
+async function openStandingsEditor(entryId, blockId) {
   const { data: entry } = await db.from('tournament_block_entries').select('*').eq('id', entryId).single();
   if (!entry) return;
+  const superstarName = entry.superstar_name;
 
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay open';
@@ -3322,7 +3323,7 @@ async function renderTournaments() {
                   <td class="${i===0 ? 'block-leader' : ''}">${e.superstar_name}</td>
                   <td>${e.wins}</td><td>${e.losses}</td><td>${e.draws}</td>
                   <td class="block-pts pts-${bc}">${e.points}</td>
-                  <td><button onclick="openStandingsEditor(${e.id},'${e.superstar_name}',${block.id})" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:11px;padding:2px 4px" title="Edit">✏</button></td>
+                  <td><button onclick="openStandingsEditor(${e.id},${block.id})" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:13px;padding:2px 6px" title="Edit standings">✏</button></td>
                 </tr>`).join('')}
               </tbody>
             </table>
