@@ -2198,6 +2198,13 @@ function addMatchRow() {
   const n = matchRowCount;
   const orders = ['Opener','Match 2','Match 3','Match 4','Match 5','Main Event'];
   const orderVal = orders[n-1] || `Match ${n}`;
+
+  // Build tournament options from active tournaments
+  const tourneyOptions = `<option value="">None</option>` +
+    allTournaments.filter(t => t.status === 'active').map(t =>
+      `<option value="${t.id}">${t.name}</option>`
+    ).join('');
+
   const el = document.createElement('div');
   el.className = 'match-entry-row';
   el.id = `match-row-${n}`;
@@ -2252,9 +2259,15 @@ function addMatchRow() {
           </select>
         </div>
       </div>
-      <div class="form-group" style="margin-top:8px;margin-bottom:0">
-        <label class="form-label">Match Note</label>
-        <input class="form-input" id="m${n}-note" placeholder="Optional story note">
+      <div class="match-fields-grid" style="margin-top:8px">
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Tournament</label>
+          <select class="form-select" id="m${n}-tourney">${tourneyOptions}</select>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Match Note</label>
+          <input class="form-input" id="m${n}-note" placeholder="Optional story note">
+        </div>
       </div>
     </div>`;
   document.getElementById('match-rows').appendChild(el);
@@ -2549,6 +2562,7 @@ async function showProfile(id) {
         </div>
         <div style="display:flex;gap:8px">
           <button class="btn btn-ghost btn-sm" onclick="editSuperstar(${s.id})">Edit</button>
+          <button class="btn btn-ghost btn-sm" onclick="openRecordEditor(${s.id})">Edit Record</button>
         </div>
       </div>
       <div class="profile-stats">
@@ -2794,8 +2808,157 @@ function toggleEpisode(id) {
 }
 
 // ═══════════════════════════════════════
-// AUTO-UPDATE TOURNAMENT STANDINGS
+// UPDATE SPECIFIC TOURNAMENT
 // ═══════════════════════════════════════
+async function updateSpecificTournament(tournamentId, p1, p2, winner, method) {
+  const t = allTournaments.find(t => t.id === tournamentId);
+  if (!t) return;
+
+  const isDraw = method === 'DRAW' || (method === 'CO' && !winner);
+  const p1Win = namesMatch(winner, p1);
+
+  if (t.format === 'block') {
+    const { data: blocks } = await db.from('tournament_blocks').select('*').eq('tournament_id', tournamentId);
+    if (!blocks?.length) return;
+
+    for (const block of blocks) {
+      const { data: entries } = await db.from('tournament_block_entries').select('*').eq('block_id', block.id);
+      if (!entries?.length) continue;
+
+      const e1 = entries.find(e => namesMatch(e.superstar_name, p1));
+      const e2 = entries.find(e => namesMatch(e.superstar_name, p2));
+      if (!e1 || !e2) continue;
+
+      if (isDraw) {
+        await db.from('tournament_block_entries').update({ draws: (e1.draws||0)+1, points: (e1.points||0)+1 }).eq('id', e1.id);
+        await db.from('tournament_block_entries').update({ draws: (e2.draws||0)+1, points: (e2.points||0)+1 }).eq('id', e2.id);
+      } else {
+        const we = p1Win ? e1 : e2;
+        const le = p1Win ? e2 : e1;
+        await db.from('tournament_block_entries').update({ wins: (we.wins||0)+1, points: (we.points||0)+2 }).eq('id', we.id);
+        await db.from('tournament_block_entries').update({ losses: (le.losses||0)+1 }).eq('id', le.id);
+      }
+      return;
+    }
+  } else if (t.format === 'bracket') {
+    // Update bracket winner
+    const { data: bmatches } = await db.from('tournament_bracket_matches').select('*').eq('tournament_id', tournamentId);
+    if (!bmatches?.length) return;
+    for (const bm of bmatches) {
+      if ((namesMatch(bm.team1, p1) && namesMatch(bm.team2, p2)) ||
+          (namesMatch(bm.team1, p2) && namesMatch(bm.team2, p1))) {
+        await db.from('tournament_bracket_matches').update({ winner: winner || 'DRAW' }).eq('id', bm.id);
+        return;
+      }
+    }
+  }
+}
+
+// ═══════════════════════════════════════
+// MANUAL RECORD EDITOR
+// ═══════════════════════════════════════
+function openRecordEditor(id) {
+  const s = allSuperstars.find(x => x.id === id);
+  if (!s) return;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay open';
+  overlay.id = 'modal-record-editor';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:400px">
+      <div class="modal-header">
+        <div class="modal-title">Edit Record — ${s.name}</div>
+        <button class="modal-close" onclick="document.getElementById('modal-record-editor').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="grid-3">
+          <div class="form-group">
+            <label class="form-label">Wins</label>
+            <input class="form-input" id="rec-wins" type="number" value="${s.wins||0}" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Losses</label>
+            <input class="form-input" id="rec-losses" type="number" value="${s.losses||0}" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Draws</label>
+            <input class="form-input" id="rec-draws" type="number" value="${s.draws||0}" min="0">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="document.getElementById('modal-record-editor').remove()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveRecord(${id})">Save</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function saveRecord(id) {
+  const wins   = parseInt(document.getElementById('rec-wins').value) || 0;
+  const losses = parseInt(document.getElementById('rec-losses').value) || 0;
+  const draws  = parseInt(document.getElementById('rec-draws').value) || 0;
+  await db.from('superstars').update({ wins, losses, draws }).eq('id', id);
+  document.getElementById('modal-record-editor')?.remove();
+  toast('Record updated!', 'success');
+  await loadAll();
+  showProfile(id);
+}
+
+// ═══════════════════════════════════════
+// MANUAL STANDINGS EDITOR
+// ═══════════════════════════════════════
+async function openStandingsEditor(entryId, superstarName, blockId) {
+  const { data: entry } = await db.from('tournament_block_entries').select('*').eq('id', entryId).single();
+  if (!entry) return;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay open';
+  overlay.id = 'modal-standings-editor';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:400px">
+      <div class="modal-header">
+        <div class="modal-title">Edit Standings — ${superstarName}</div>
+        <button class="modal-close" onclick="document.getElementById('modal-standings-editor').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Wins</label>
+            <input class="form-input" id="st-wins" type="number" value="${entry.wins||0}" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Losses</label>
+            <input class="form-input" id="st-losses" type="number" value="${entry.losses||0}" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Draws</label>
+            <input class="form-input" id="st-draws" type="number" value="${entry.draws||0}" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Points</label>
+            <input class="form-input" id="st-points" type="number" value="${entry.points||0}" min="0">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="document.getElementById('modal-standings-editor').remove()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveStandings(${entryId})">Save</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function saveStandings(entryId) {
+  const wins   = parseInt(document.getElementById('st-wins').value) || 0;
+  const losses = parseInt(document.getElementById('st-losses').value) || 0;
+  const draws  = parseInt(document.getElementById('st-draws').value) || 0;
+  const points = parseInt(document.getElementById('st-points').value) || 0;
+  await db.from('tournament_block_entries').update({ wins, losses, draws, points }).eq('id', entryId);
+  document.getElementById('modal-standings-editor')?.remove();
+  toast('Standings updated!', 'success');
+  await renderTournaments();
+}
 function normalizeName(name) {
   if (!name) return '';
   return name.toLowerCase()
@@ -2916,6 +3079,7 @@ async function saveEpisode() {
     const tc     = document.getElementById(`m${n}-tc`)?.value === 'true';
     const note   = document.getElementById(`m${n}-note`)?.value?.trim();
     const order  = document.getElementById(`m${n}-order`)?.value?.trim();
+    const tourneyId = parseInt(document.getElementById(`m${n}-tourney`)?.value) || null;
 
     if (!isNaN(rating)) { totalRating += rating; ratingCount++; }
 
@@ -2930,11 +3094,18 @@ async function saveEpisode() {
       rating: !isNaN(rating) ? rating : null,
       title_change: tc,
       note: note || null,
+      is_tournament: !!tourneyId,
+      tournament_id: tourneyId,
+      _tourneyId: tourneyId, // temp field for processing
     });
   }
 
   if (matchInserts.length) {
-    await db.from('matches').insert(matchInserts);
+    const dbInserts = matchInserts.map(m => {
+      const { _tourneyId, ...rest } = m;
+      return rest;
+    });
+    await db.from('matches').insert(dbInserts);
 
     // Update W/L records
     for (const m of matchInserts) {
@@ -2957,7 +3128,12 @@ async function saveEpisode() {
         await updateSuperstar(m.participant2, !p1Win && !isDraw);
 
         // Auto-update tournament standings
-        await updateTournamentStandings(m.participant1, m.participant2, m.winner, m.method);
+        if (m._tourneyId) {
+          // Use specific tournament if selected
+          await updateSpecificTournament(m._tourneyId, m.participant1, m.participant2, m.winner, m.method);
+        } else {
+          await updateTournamentStandings(m.participant1, m.participant2, m.winner, m.method);
+        }
       }
     }
   }
@@ -3140,12 +3316,13 @@ async function renderTournaments() {
           html += `<div class="block-card">
             <div class="block-head ${bc}">${block.name}</div>
             <table class="block-table">
-              <thead><tr><th>Wrestler</th><th>W</th><th>L</th><th>D</th><th>Pts</th></tr></thead>
+              <thead><tr><th>Wrestler</th><th>W</th><th>L</th><th>D</th><th>Pts</th><th></th></tr></thead>
               <tbody>
                 ${(entries||[]).map((e,i) => `<tr class="${e.eliminated ? 'block-elim' : ''}">
                   <td class="${i===0 ? 'block-leader' : ''}">${e.superstar_name}</td>
                   <td>${e.wins}</td><td>${e.losses}</td><td>${e.draws}</td>
                   <td class="block-pts pts-${bc}">${e.points}</td>
+                  <td><button onclick="openStandingsEditor(${e.id},'${e.superstar_name}',${block.id})" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:11px;padding:2px 4px" title="Edit">✏</button></td>
                 </tr>`).join('')}
               </tbody>
             </table>
