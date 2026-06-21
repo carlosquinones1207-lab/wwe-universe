@@ -3315,15 +3315,16 @@ async function renderTournaments() {
         for (const block of blocks) {
           const { data: entries } = await db.from('tournament_block_entries').select('*').eq('block_id', block.id).order('points', {ascending: false});
           html += `<div class="block-card">
-            <div class="block-head ${bc}">${block.name}</div>
+            <div class="block-head ${bc}" style="display:flex;align-items:center;justify-content:space-between">
+              <span>${block.name}</span>
+            </div>
             <table class="block-table">
-              <thead><tr><th>Wrestler</th><th>W</th><th>L</th><th>D</th><th>Pts</th><th></th></tr></thead>
+              <thead><tr><th>Wrestler</th><th>W</th><th>L</th><th>D</th><th>Pts</th></tr></thead>
               <tbody>
-                ${(entries||[]).map((e,i) => `<tr class="${e.eliminated ? 'block-elim' : ''}">
-                  <td class="${i===0 ? 'block-leader' : ''}">${e.superstar_name}</td>
+                ${(entries||[]).map((e,i) => `<tr class="${e.eliminated ? 'block-elim' : ''}" style="cursor:pointer" onclick="openStandingsEditor(${e.id},${block.id})" title="Click to edit">
+                  <td class="${i===0 ? 'block-leader' : ''}">${e.superstar_name} <span style="color:var(--muted2);font-size:10px">✏</span></td>
                   <td>${e.wins}</td><td>${e.losses}</td><td>${e.draws}</td>
                   <td class="block-pts pts-${bc}">${e.points}</td>
-                  <td><button onclick="openStandingsEditor(${e.id},${block.id})" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:13px;padding:2px 6px" title="Edit standings">✏</button></td>
                 </tr>`).join('')}
               </tbody>
             </table>
