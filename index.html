@@ -2193,6 +2193,12 @@ document.querySelectorAll('.modal-overlay').forEach(o => {
 // ═══════════════════════════════════════
 // MATCH ROW BUILDER
 // ═══════════════════════════════════════
+function toggleCustomType(prefix) {
+  const select = document.getElementById(`${prefix}-type`);
+  const group  = document.getElementById(`${prefix}-custom-type-group`);
+  if (select && group) group.style.display = select.value === 'Custom' ? 'block' : 'none';
+}
+
 function addMatchRow() {
   matchRowCount++;
   const n = matchRowCount;
@@ -2257,6 +2263,28 @@ function addMatchRow() {
             <option value="false">No</option>
             <option value="true">Yes</option>
           </select>
+        </div>
+      </div>
+      <div class="match-fields-grid" style="margin-top:8px">
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Match Type</label>
+          <select class="form-select" id="m${n}-type" onchange="toggleCustomType('m${n}')">
+            <option value="Singles">Singles (1v1)</option>
+            <option value="Tag Team">Tag Team (2v2)</option>
+            <option value="Triple Threat">Triple Threat</option>
+            <option value="Fatal 4-Way">Fatal 4-Way</option>
+            <option value="Battle Royal">Battle Royal</option>
+            <option value="Ladder Match">Ladder Match</option>
+            <option value="Steel Cage">Steel Cage</option>
+            <option value="Last Man Standing">Last Man Standing</option>
+            <option value="TLC">TLC</option>
+            <option value="Hardcore">Hardcore</option>
+            <option value="Custom">Custom...</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin:0;display:none" id="m${n}-custom-type-group">
+          <label class="form-label">Custom Type</label>
+          <input class="form-input" id="m${n}-custom-type" placeholder="e.g. Iron Man Match">
         </div>
       </div>
       <div class="match-fields-grid" style="margin-top:8px">
@@ -2757,13 +2785,22 @@ function openEpisodePanel(episodeId) {
 
   const content = document.getElementById('episode-panel-content');
   content.innerHTML = `
-    <div style="margin-bottom:20px">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-        <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;color:${brandColor};text-transform:uppercase;letter-spacing:2px">${brandName(ep.brand_id)}</span>
-        <span style="font-size:13px;color:var(--muted)">Episode ${ep.episode_number} · ${ep.month_label || 'Month ' + ep.month_number}</span>
-        ${ep.avg_rating ? `<span style="margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;color:var(--star)">${ep.avg_rating}★</span>` : ''}
+    <!-- Episode Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;color:${brandColor};text-transform:uppercase;letter-spacing:2px">${brandName(ep.brand_id)}</div>
+        <div style="font-size:13px;color:var(--muted)">Episode ${ep.episode_number} · ${ep.month_label || 'Month ' + ep.month_number}</div>
       </div>
-      ${ep.summary ? `<div style="font-size:13px;color:#aaa;line-height:1.6;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius)">${ep.summary}</div>` : ''}
+      <button class="btn btn-ghost btn-sm" onclick="openEpisodeEditModal(${ep.id})">✏ Edit Episode</button>
+    </div>
+
+    <!-- Summary -->
+    ${ep.summary ? `<div style="font-size:13px;color:#aaa;line-height:1.6;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px">${ep.summary}</div>` : ''}
+
+    <!-- Match list -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)">Matches (${epMatches.length})</div>
+      <button class="btn btn-ghost btn-sm" onclick="openAddMatchToEpisode(${ep.id})">+ Add Match</button>
     </div>
 
     ${epMatches.length ? epMatches.map(m => {
@@ -2771,12 +2808,17 @@ function openEpisodePanel(episodeId) {
       return `<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px">
           <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)">${m.match_order || '—'}</div>
-          ${m.rating ? `<div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;color:${ratingColor}">${m.rating}★</div>` : ''}
+          <div style="display:flex;align-items:center;gap:8px">
+            ${m.rating ? `<div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;color:${ratingColor}">${m.rating}★</div>` : ''}
+            <button onclick="openMatchEditModal(${m.id},${ep.id})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 6px" title="Edit match">✏</button>
+            <button onclick="deleteMatch(${m.id},${ep.id})" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:13px;padding:2px 6px" title="Delete match">🗑</button>
+          </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
           <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:600;color:#fff">${m.participant1}</span>
           <span style="font-size:11px;color:var(--muted)">vs</span>
           <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:600;color:#fff">${m.participant2}</span>
+          ${m.match_type && m.match_type !== 'Singles' ? `<span style="font-size:10px;background:var(--card2);border:1px solid var(--border);padding:2px 6px;color:var(--muted);margin-left:4px">${m.match_type}</span>` : ''}
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <span style="font-size:12px;color:var(--win);font-weight:600">Winner: ${m.winner || '—'}</span>
@@ -2791,6 +2833,348 @@ function openEpisodePanel(episodeId) {
   const panel = document.getElementById('episode-panel');
   overlay.style.display = 'flex';
   setTimeout(() => { panel.style.transform = 'translateY(0)'; }, 10);
+}
+
+// Edit episode summary/details
+function openEpisodeEditModal(episodeId) {
+  const ep = allEpisodes.find(e => e.id === episodeId);
+  if (!ep) return;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay open';
+  overlay.id = 'modal-episode-edit';
+  overlay.innerHTML = `
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Edit Episode</div>
+        <button class="modal-close" onclick="document.getElementById('modal-episode-edit').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="grid-3">
+          <div class="form-group">
+            <label class="form-label">Episode #</label>
+            <input class="form-input" id="ee-number" type="number" value="${ep.episode_number}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Month</label>
+            <input class="form-input" id="ee-month" type="number" value="${ep.month_number || ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Avg Rating</label>
+            <input class="form-input" id="ee-rating" type="number" step="0.01" value="${ep.avg_rating || ''}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Summary</label>
+          <textarea class="form-textarea" id="ee-summary">${ep.summary || ''}</textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="document.getElementById('modal-episode-edit').remove()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveEpisodeEdit(${episodeId})">Save</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function saveEpisodeEdit(episodeId) {
+  const number  = parseInt(document.getElementById('ee-number').value);
+  const month   = parseInt(document.getElementById('ee-month').value);
+  const rating  = parseFloat(document.getElementById('ee-rating').value);
+  const summary = document.getElementById('ee-summary').value.trim();
+
+  await db.from('episodes').update({
+    episode_number: number || null,
+    month_number: month || null,
+    avg_rating: !isNaN(rating) ? rating : null,
+    summary: summary || null,
+  }).eq('id', episodeId);
+
+  document.getElementById('modal-episode-edit')?.remove();
+  toast('Episode updated!', 'success');
+  await loadAll();
+  openEpisodePanel(episodeId);
+}
+
+// Edit individual match
+function openMatchEditModal(matchId, episodeId) {
+  const m = allMatches.find(x => x.id === matchId);
+  if (!m) return;
+
+  const tourneyOptions = `<option value="">None</option>` +
+    allTournaments.filter(t => t.status === 'active').map(t =>
+      `<option value="${t.id}" ${m.tournament_id === t.id ? 'selected' : ''}>${t.name}</option>`
+    ).join('');
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay open';
+  overlay.id = 'modal-match-edit';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:600px">
+      <div class="modal-header">
+        <div class="modal-title">Edit Match</div>
+        <button class="modal-close" onclick="document.getElementById('modal-match-edit').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Participant 1</label>
+            <input class="form-input" id="me-p1" value="${m.participant1 || ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Participant 2</label>
+            <input class="form-input" id="me-p2" value="${m.participant2 || ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Winner</label>
+            <input class="form-input" id="me-winner" value="${m.winner || ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Winning Move</label>
+            <input class="form-input" id="me-move" value="${m.winning_move || ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Match Type</label>
+            <select class="form-select" id="me-type" onchange="toggleCustomType('me')">
+              <option value="Singles" ${m.match_type==='Singles'||!m.match_type?'selected':''}>Singles (1v1)</option>
+              <option value="Tag Team" ${m.match_type==='Tag Team'?'selected':''}>Tag Team (2v2)</option>
+              <option value="Triple Threat" ${m.match_type==='Triple Threat'?'selected':''}>Triple Threat</option>
+              <option value="Fatal 4-Way" ${m.match_type==='Fatal 4-Way'?'selected':''}>Fatal 4-Way</option>
+              <option value="Battle Royal" ${m.match_type==='Battle Royal'?'selected':''}>Battle Royal</option>
+              <option value="Ladder Match" ${m.match_type==='Ladder Match'?'selected':''}>Ladder Match</option>
+              <option value="Steel Cage" ${m.match_type==='Steel Cage'?'selected':''}>Steel Cage</option>
+              <option value="Last Man Standing" ${m.match_type==='Last Man Standing'?'selected':''}>Last Man Standing</option>
+              <option value="TLC" ${m.match_type==='TLC'?'selected':''}>TLC</option>
+              <option value="Hardcore" ${m.match_type==='Hardcore'?'selected':''}>Hardcore</option>
+              <option value="Custom" ${m.match_type&&!['Singles','Tag Team','Triple Threat','Fatal 4-Way','Battle Royal','Ladder Match','Steel Cage','Last Man Standing','TLC','Hardcore'].includes(m.match_type)?'selected':''}>Custom...</option>
+            </select>
+          </div>
+          <div class="form-group" id="me-custom-type-group" style="display:${m.match_type&&!['Singles','Tag Team','Triple Threat','Fatal 4-Way','Battle Royal','Ladder Match','Steel Cage','Last Man Standing','TLC','Hardcore'].includes(m.match_type)?'block':'none'}">
+            <label class="form-label">Custom Type</label>
+            <input class="form-input" id="me-custom-type" value="${m.match_type&&!['Singles','Tag Team','Triple Threat','Fatal 4-Way','Battle Royal','Ladder Match','Steel Cage','Last Man Standing','TLC','Hardcore'].includes(m.match_type)?m.match_type:''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Method</label>
+              <option value="PIN" ${m.method==='PIN'?'selected':''}>PIN</option>
+              <option value="SUB" ${m.method==='SUB'?'selected':''}>Submission</option>
+              <option value="CO" ${m.method==='CO'?'selected':''}>Count Out</option>
+              <option value="DQ" ${m.method==='DQ'?'selected':''}>DQ</option>
+              <option value="DRAW" ${m.method==='DRAW'?'selected':''}>Draw</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Order</label>
+            <input class="form-input" id="me-order" value="${m.match_order || ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rating (★)</label>
+            <input class="form-input" id="me-rating" type="number" step="0.5" min="0" max="5" value="${m.rating || ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tournament</label>
+            <select class="form-select" id="me-tourney">${tourneyOptions}</select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Note</label>
+          <input class="form-input" id="me-note" value="${m.note || ''}">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="document.getElementById('modal-match-edit').remove()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveMatchEdit(${matchId},${episodeId})">Save</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function saveMatchEdit(matchId, episodeId) {
+  const p1      = document.getElementById('me-p1').value.trim();
+  const p2      = document.getElementById('me-p2').value.trim();
+  const winner  = document.getElementById('me-winner').value.trim();
+  const move    = document.getElementById('me-move').value.trim();
+  const method  = document.getElementById('me-method').value;
+  const order   = document.getElementById('me-order').value.trim();
+  const rating  = parseFloat(document.getElementById('me-rating').value);
+  const note    = document.getElementById('me-note').value.trim();
+  const tourneyId = parseInt(document.getElementById('me-tourney').value) || null;
+  const meType = document.getElementById('me-type').value;
+  const meCustom = document.getElementById('me-custom-type')?.value?.trim();
+  const matchType = meType === 'Custom' ? (meCustom || 'Custom') : meType;
+
+  await db.from('matches').update({
+    participant1: p1 || null,
+    participant2: p2 || null,
+    winner: winner || null,
+    winning_move: move || null,
+    method: method || null,
+    match_order: order || null,
+    match_type: matchType || 'Singles',
+    rating: !isNaN(rating) ? rating : null,
+    note: note || null,
+    is_tournament: !!tourneyId,
+    tournament_id: tourneyId,
+  }).eq('id', matchId);
+
+  document.getElementById('modal-match-edit')?.remove();
+  toast('Match updated!', 'success');
+  await loadAll();
+  openEpisodePanel(episodeId);
+}
+
+// Delete individual match
+async function deleteMatch(matchId, episodeId) {
+  if (!confirm('Delete this match?')) return;
+  await db.from('matches').delete().eq('id', matchId);
+  toast('Match deleted', '');
+  await loadAll();
+  openEpisodePanel(episodeId);
+}
+
+// Add new match to existing episode
+function openAddMatchToEpisode(episodeId) {
+  const tourneyOptions = `<option value="">None</option>` +
+    allTournaments.filter(t => t.status === 'active').map(t =>
+      `<option value="${t.id}">${t.name}</option>`
+    ).join('');
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay open';
+  overlay.id = 'modal-add-match';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:600px">
+      <div class="modal-header">
+        <div class="modal-title">Add Match</div>
+        <button class="modal-close" onclick="document.getElementById('modal-add-match').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Participant 1</label>
+            <input class="form-input" id="am-p1" placeholder="Name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Participant 2</label>
+            <input class="form-input" id="am-p2" placeholder="Name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Winner</label>
+            <input class="form-input" id="am-winner" placeholder="Winner">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Winning Move</label>
+            <input class="form-input" id="am-move" placeholder="Move">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Match Type</label>
+            <select class="form-select" id="am-type" onchange="toggleCustomType('am')">
+              <option value="Singles">Singles (1v1)</option>
+              <option value="Tag Team">Tag Team (2v2)</option>
+              <option value="Triple Threat">Triple Threat</option>
+              <option value="Fatal 4-Way">Fatal 4-Way</option>
+              <option value="Battle Royal">Battle Royal</option>
+              <option value="Ladder Match">Ladder Match</option>
+              <option value="Steel Cage">Steel Cage</option>
+              <option value="Last Man Standing">Last Man Standing</option>
+              <option value="TLC">TLC</option>
+              <option value="Hardcore">Hardcore</option>
+              <option value="Custom">Custom...</option>
+            </select>
+          </div>
+          <div class="form-group" id="am-custom-type-group" style="display:none">
+            <label class="form-label">Custom Type</label>
+            <input class="form-input" id="am-custom-type" placeholder="e.g. Iron Man Match">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Method</label>
+            <select class="form-select" id="am-method">
+              <option value="PIN">PIN</option>
+              <option value="SUB">Submission</option>
+              <option value="CO">Count Out</option>
+              <option value="DQ">DQ</option>
+              <option value="DRAW">Draw</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Order</label>
+            <input class="form-input" id="am-order" placeholder="Opener, Match 2...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rating (★)</label>
+            <input class="form-input" id="am-rating" type="number" step="0.5" min="0" max="5" placeholder="4.0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tournament</label>
+            <select class="form-select" id="am-tourney">${tourneyOptions}</select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Note</label>
+          <input class="form-input" id="am-note" placeholder="Optional note">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="document.getElementById('modal-add-match').remove()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveNewMatch(${episodeId})">Add Match</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function saveNewMatch(episodeId) {
+  const p1      = document.getElementById('am-p1').value.trim();
+  const p2      = document.getElementById('am-p2').value.trim();
+  const winner  = document.getElementById('am-winner').value.trim();
+  const move    = document.getElementById('am-move').value.trim();
+  const method  = document.getElementById('am-method').value;
+  const order   = document.getElementById('am-order').value.trim();
+  const rating  = parseFloat(document.getElementById('am-rating').value);
+  const note    = document.getElementById('am-note').value.trim();
+  const tourneyId = parseInt(document.getElementById('am-tourney').value) || null;
+  const amType = document.getElementById('am-type').value;
+  const amCustom = document.getElementById('am-custom-type')?.value?.trim();
+  const matchType = amType === 'Custom' ? (amCustom || 'Custom') : amType;
+
+  if (!p1 || !p2) { toast('Enter both participants', 'error'); return; }
+
+  await db.from('matches').insert({
+    episode_id: episodeId,
+    participant1: p1,
+    participant2: p2,
+    winner: winner || null,
+    winning_move: move || null,
+    method: method || null,
+    match_order: order || null,
+    match_type: matchType || 'Singles',
+    rating: !isNaN(rating) ? rating : null,
+    note: note || null,
+    is_tournament: !!tourneyId,
+    tournament_id: tourneyId,
+  });
+
+  // Update W/L records
+  if (winner) {
+    const isDraw = method === 'DRAW';
+    const p1Win = winner.toLowerCase() === p1.toLowerCase();
+    const updateSuperstarRecord = async (name, isWinner) => {
+      const ss = allSuperstars.find(s => s.name.toLowerCase() === name.toLowerCase());
+      if (!ss) return;
+      const update = isDraw ? { draws: (ss.draws||0)+1 } : isWinner ? { wins: (ss.wins||0)+1 } : { losses: (ss.losses||0)+1 };
+      await db.from('superstars').update(update).eq('id', ss.id);
+    };
+    await updateSuperstarRecord(p1, p1Win && !isDraw);
+    await updateSuperstarRecord(p2, !p1Win && !isDraw);
+  }
+
+  // Update tournament if selected
+  if (tourneyId) {
+    await updateSpecificTournament(tourneyId, p1, p2, winner, method);
+  }
+
+  document.getElementById('modal-add-match')?.remove();
+  toast('Match added!', 'success');
+  await loadAll();
+  openEpisodePanel(episodeId);
 }
 
 function closeEpisodePanel(event) {
@@ -3081,12 +3465,16 @@ async function saveEpisode() {
     const note   = document.getElementById(`m${n}-note`)?.value?.trim();
     const order  = document.getElementById(`m${n}-order`)?.value?.trim();
     const tourneyId = parseInt(document.getElementById(`m${n}-tourney`)?.value) || null;
+    const typeSelect = document.getElementById(`m${n}-type`)?.value;
+    const customType = document.getElementById(`m${n}-custom-type`)?.value?.trim();
+    const matchType  = typeSelect === 'Custom' ? (customType || 'Custom') : (typeSelect || 'Singles');
 
     if (!isNaN(rating)) { totalRating += rating; ratingCount++; }
 
     matchInserts.push({
       episode_id: epData.id,
       match_order: order || null,
+      match_type: matchType || 'Singles',
       participant1: p1,
       participant2: p2,
       winner: winner || null,
@@ -3097,7 +3485,7 @@ async function saveEpisode() {
       note: note || null,
       is_tournament: !!tourneyId,
       tournament_id: tourneyId,
-      _tourneyId: tourneyId, // temp field for processing
+      _tourneyId: tourneyId,
     });
   }
 
