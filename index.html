@@ -2199,6 +2199,83 @@ function toggleCustomType(prefix) {
   if (select && group) group.style.display = select.value === 'Custom' ? 'block' : 'none';
 }
 
+function updateParticipants(prefix) {
+  const select = document.getElementById(`${prefix}-type`);
+  const container = document.getElementById(`${prefix}-participants`);
+  if (!select || !container) return;
+
+  const type = select.value;
+  const fixed = { 'Singles': 2, 'Tag Team': 2, 'Triple Threat': 3, 'Fatal 4-Way': 4 };
+  const count = fixed[type] || null; // null = dynamic (Battle Royal, Custom, etc)
+
+  // Get existing values
+  const existing = [];
+  let i = 1;
+  while (document.getElementById(`${prefix}-p${i}`)) {
+    existing.push(document.getElementById(`${prefix}-p${i}`).value);
+    i++;
+  }
+
+  if (count) {
+    // Fixed count — rebuild with exactly that many fields
+    let html = '<div class="match-fields-grid" style="margin-bottom:6px;grid-template-columns:repeat(2,1fr)">';
+    for (let j = 1; j <= count; j++) {
+      html += `<div class="form-group" style="margin:0">
+        <label class="form-label">Participant ${j}</label>
+        <input class="form-input" id="${prefix}-p${j}" placeholder="Name" value="${existing[j-1]||''}">
+      </div>`;
+    }
+    html += '</div>';
+    container.innerHTML = html;
+  } else {
+    // Dynamic — show existing + add button
+    let html = '<div id="' + prefix + '-plist">';
+    const num = Math.max(existing.length, 2);
+    for (let j = 1; j <= num; j++) {
+      html += `<div class="match-fields-grid" style="margin-bottom:6px;grid-template-columns:1fr auto">
+        <input class="form-input" id="${prefix}-p${j}" placeholder="Participant ${j}" value="${existing[j-1]||''}">
+        ${j > 2 ? `<button type="button" onclick="removeParticipant('${prefix}',${j})" style="background:none;border:none;color:var(--heel);cursor:pointer;padding:0 8px;font-size:18px">×</button>` : '<div></div>'}
+      </div>`;
+    }
+    html += `</div><button type="button" class="btn btn-ghost btn-sm" style="margin-top:4px" onclick="addParticipant('${prefix}')">+ Add Participant</button>`;
+    container.innerHTML = html;
+  }
+}
+
+function addParticipant(prefix) {
+  const list = document.getElementById(`${prefix}-plist`);
+  if (!list) return;
+  let i = 1;
+  while (document.getElementById(`${prefix}-p${i}`)) i++;
+  const div = document.createElement('div');
+  div.className = 'match-fields-grid';
+  div.style.cssText = 'margin-bottom:6px;grid-template-columns:1fr auto';
+  div.id = `${prefix}-prow${i}`;
+  div.innerHTML = `
+    <input class="form-input" id="${prefix}-p${i}" placeholder="Participant ${i}">
+    <button type="button" onclick="removeParticipant('${prefix}',${i})" style="background:none;border:none;color:var(--heel);cursor:pointer;padding:0 8px;font-size:18px">×</button>`;
+  list.appendChild(div);
+}
+
+function removeParticipant(prefix, num) {
+  const row = document.getElementById(`${prefix}-prow${num}`);
+  if (row) row.remove();
+}
+
+function getParticipants(prefix) {
+  const participants = [];
+  let i = 1;
+  while (true) {
+    const el = document.getElementById(`${prefix}-p${i}`);
+    if (!el) break;
+    const val = el.value.trim();
+    if (val) participants.push(val);
+    i++;
+    if (i > 50) break; // safety limit
+  }
+  return participants;
+}
+
 function addMatchRow() {
   matchRowCount++;
   const n = matchRowCount;
@@ -2218,14 +2295,16 @@ function addMatchRow() {
     <div class="match-num">${n}</div>
     <button class="remove-match-btn" onclick="removeMatchRow(${n})">✕</button>
     <div class="match-entry-fields">
-      <div class="match-fields-grid" style="margin-bottom:8px">
-        <div class="form-group" style="margin:0">
-          <label class="form-label">Participant 1</label>
-          <input class="form-input" id="m${n}-p1" placeholder="Name">
-        </div>
-        <div class="form-group" style="margin:0">
-          <label class="form-label">Participant 2</label>
-          <input class="form-input" id="m${n}-p2" placeholder="Name">
+      <div id="m${n}-participants" style="margin-bottom:8px">
+        <div class="match-fields-grid" style="margin-bottom:6px">
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Participant 1</label>
+            <input class="form-input" id="m${n}-p1" placeholder="Name">
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Participant 2</label>
+            <input class="form-input" id="m${n}-p2" placeholder="Name">
+          </div>
         </div>
       </div>
       <div class="match-fields-grid3" style="margin-bottom:8px">
@@ -2268,7 +2347,7 @@ function addMatchRow() {
       <div class="match-fields-grid" style="margin-top:8px">
         <div class="form-group" style="margin:0">
           <label class="form-label">Match Type</label>
-          <select class="form-select" id="m${n}-type" onchange="toggleCustomType('m${n}')">
+          <select class="form-select" id="m${n}-type" onchange="toggleCustomType('m${n}');updateParticipants('m${n}')">
             <option value="Singles">Singles (1v1)</option>
             <option value="Tag Team">Tag Team (2v2)</option>
             <option value="Triple Threat">Triple Threat</option>
@@ -3497,9 +3576,13 @@ async function saveEpisode() {
 
   for (const row of matchRows) {
     const n = row.id.replace('match-row-','');
-    const p1 = document.getElementById(`m${n}-p1`)?.value?.trim();
-    const p2 = document.getElementById(`m${n}-p2`)?.value?.trim();
-    if (!p1 || !p2) continue;
+    const participants = getParticipants(`m${n}`);
+    if (participants.length < 2) continue;
+
+    const p1 = participants[0];
+    const p2 = participants[1];
+    // Store extra participants in note or as comma list in participant2
+    const allParticipants = participants.join(', ');
 
     const winner = document.getElementById(`m${n}-winner`)?.value?.trim();
     const move   = document.getElementById(`m${n}-move`)?.value?.trim();
@@ -3520,7 +3603,7 @@ async function saveEpisode() {
       match_order: order || null,
       match_type: matchType || 'Singles',
       participant1: p1,
-      participant2: p2,
+      participant2: participants.length > 2 ? allParticipants : p2,
       winner: winner || null,
       winning_move: move || null,
       method: method || null,
