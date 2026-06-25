@@ -3191,6 +3191,50 @@ function toggleEpisode(id) {
   if (el) el.classList.toggle('open');
 }
 
+async function openBracketMatchEditor(matchId) {
+  const { data: m } = await db.from('tournament_bracket_matches').select('*').eq('id', matchId).single();
+  if (!m) return;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay open';
+  overlay.id = 'modal-bracket-edit';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:400px">
+      <div class="modal-header">
+        <div class="modal-title">Edit Bracket Match</div>
+        <button class="modal-close" onclick="document.getElementById('modal-bracket-edit').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:16px">${m.round}: <strong style="color:#fff">${m.team1}</strong> vs <strong style="color:#fff">${m.team2}</strong></div>
+        <div class="form-group">
+          <label class="form-label">Winner</label>
+          <input class="form-input" id="bm-winner" value="${m.winner || ''}" placeholder="Leave blank if TBD">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Note (Optional)</label>
+          <input class="form-input" id="bm-note" value="${m.note || ''}" placeholder="e.g. Won by Count Out">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="document.getElementById('modal-bracket-edit').remove()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveBracketMatch(${matchId})">Save</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function saveBracketMatch(matchId) {
+  const winner = document.getElementById('bm-winner').value.trim();
+  const note   = document.getElementById('bm-note').value.trim();
+  await db.from('tournament_bracket_matches').update({
+    winner: winner || null,
+    note: note || null,
+  }).eq('id', matchId);
+  document.getElementById('modal-bracket-edit')?.remove();
+  toast('Bracket updated!', 'success');
+  await renderTournaments();
+}
+
 // ═══════════════════════════════════════
 // UPDATE SPECIFIC TOURNAMENT
 // ═══════════════════════════════════════
@@ -3727,7 +3771,10 @@ async function renderTournaments() {
           ${bmatches.map(m => `<div class="bracket-row">
             <div class="bracket-round">${m.round}</div>
             <div class="bracket-teams">${m.team1} <span style="color:var(--muted)">vs</span> ${m.team2}</div>
-            ${m.winner ? `<div class="bracket-winner">${m.winner}</div>` : '<div class="bracket-winner tbd">TBD</div>'}
+            <div style="display:flex;align-items:center;gap:8px">
+              ${m.winner ? `<div class="bracket-winner">${m.winner}</div>` : '<div class="bracket-winner tbd">TBD</div>'}
+              <button onclick="openBracketMatchEditor(${m.id})" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:13px;padding:2px 4px" title="Edit">✏</button>
+            </div>
           </div>`).join('')}
         </div>`;
       }
@@ -4176,10 +4223,16 @@ async function renderMagazine() {
   const ed = allEditions[currentEditionIndex];
   const isDraft = ed.status === 'draft';
 
-  // Get episode summaries
-  const rawEp  = ed.raw_episode_id  ? allEpisodes.find(e => e.id === ed.raw_episode_id)  : null;
-  const sdEp   = ed.smackdown_episode_id ? allEpisodes.find(e => e.id === ed.smackdown_episode_id) : null;
-  const rohEp  = ed.roh_episode_id  ? allEpisodes.find(e => e.id === ed.roh_episode_id)  : null;
+  // Get episode summaries — try linked IDs first, fall back to week/month matching
+  const rawEp  = ed.raw_episode_id
+    ? allEpisodes.find(e => e.id === ed.raw_episode_id)
+    : allEpisodes.find(e => e.brand_id === 'raw' && e.episode_number === ed.week_number && e.month_number === ed.month_number);
+  const sdEp   = ed.smackdown_episode_id
+    ? allEpisodes.find(e => e.id === ed.smackdown_episode_id)
+    : allEpisodes.find(e => e.brand_id === 'smackdown' && e.episode_number === ed.week_number && e.month_number === ed.month_number);
+  const rohEp  = ed.roh_episode_id
+    ? allEpisodes.find(e => e.id === ed.roh_episode_id)
+    : allEpisodes.find(e => e.brand_id === 'roh' && e.episode_number === ed.week_number && e.month_number === ed.month_number);
 
   const rawSummary  = ed.raw_summary  || rawEp?.summary  || 'Episode recap not available.';
   const sdSummary   = ed.sd_summary   || sdEp?.summary   || 'Episode recap not available.';
