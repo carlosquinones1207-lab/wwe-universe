@@ -1815,11 +1815,26 @@ body {
             <option value="raw">RAW</option>
             <option value="smackdown">SmackDown</option>
             <option value="roh">ROH</option>
+            <option value="all">All Brands (PLE)</option>
           </select>
         </div>
         <div class="form-group">
           <label class="form-label">Month</label>
           <input class="form-input" id="ep-month" type="number" placeholder="2">
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Episode Type</label>
+          <select class="form-select" id="ep-type" onchange="document.getElementById('ep-ple-name-group').style.display=this.value!=='regular'?'block':'none'">
+            <option value="regular">Regular Episode</option>
+            <option value="ple">PLE / PPV</option>
+            <option value="special">Special Event</option>
+          </select>
+        </div>
+        <div class="form-group" id="ep-ple-name-group" style="display:none">
+          <label class="form-label">Event Name</label>
+          <input class="form-input" id="ep-ple-name" placeholder="e.g. Vengeance">
         </div>
       </div>
       <div class="form-group">
@@ -2812,18 +2827,23 @@ function renderEpisodes() {
       brandEps.sort((a,b) => a.episode_number - b.episode_number);
 
       for (const ep of brandEps) {
-        const bc = brand === 'smackdown' ? 'sd' : brand;
-        const brandColor = `var(--${bc})`;
+        const epBc = ep.brand_id === 'smackdown' ? 'sd' : ep.brand_id === 'all' ? 'roh' : ep.brand_id || (brand === 'smackdown' ? 'sd' : brand);
+        const epBrandColor = ep.brand_id === 'all' ? 'linear-gradient(90deg,var(--raw),var(--sd),var(--roh))' : `var(--${epBc})`;
+        const epBrandColorSolid = ep.brand_id === 'all' ? 'var(--roh)' : `var(--${epBc})`;
         const epMatches = allMatches.filter(m => m.episode_id === ep.id);
         const matchCount = epMatches.length;
+        const isPLE = ep.brand_id === 'all' || (ep.month_label && !ep.month_label.startsWith('Month'));
+        const epDisplayName = ep.brand_id === 'all' ? 'ALL BRANDS' : brandName(ep.brand_id || brand);
+        const epLabel = isPLE ? `🏆 ${ep.month_label || 'PLE'}` : `Episode ${ep.episode_number}`;
 
         html += `<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:8px;cursor:pointer;transition:border-color 0.15s" onclick="openEpisodePanel(${ep.id})" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='var(--border)'">
-          <div style="height:3px;background:${brandColor}"></div>
+          <div style="height:3px;background:${epBrandColor}"></div>
           <div style="display:flex;align-items:center;gap:16px;padding:14px 18px">
             <div style="flex:1">
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-                <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;letter-spacing:1px;color:${brandColor};text-transform:uppercase">${brandName(brand)}</span>
-                <span style="font-size:11px;color:var(--muted)">Episode ${ep.episode_number}</span>
+                <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;letter-spacing:1px;color:${epBrandColorSolid};text-transform:uppercase">${epDisplayName}</span>
+                <span style="font-size:11px;color:var(--muted)">${epLabel}</span>
+                ${isPLE ? `<span style="background:var(--roh-dim);color:var(--roh);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;padding:1px 6px">PLE</span>` : ''}
               </div>
               <div style="font-size:12px;color:#aaa;line-height:1.5">${ep.summary || 'No summary'}</div>
             </div>
@@ -2854,8 +2874,10 @@ function openEpisodePanel(episodeId) {
   const ep = allEpisodes.find(e => e.id === episodeId);
   if (!ep) return;
 
-  const bc = ep.brand_id === 'smackdown' ? 'sd' : ep.brand_id;
-  const brandColor = `var(--${bc})`;
+  const bc = ep.brand_id === 'smackdown' ? 'sd' : ep.brand_id === 'all' ? 'roh' : ep.brand_id;
+  const brandColor = ep.brand_id === 'all' ? 'linear-gradient(90deg,var(--raw),var(--sd),var(--roh))' : `var(--${bc})`;
+  const brandColorSolid = ep.brand_id === 'all' ? 'var(--roh)' : `var(--${bc})`;
+  const isPLE = ep.brand_id === 'all' || (ep.month_label && !ep.month_label.startsWith('Month'));
   const epMatches = allMatches.filter(m => m.episode_id === ep.id)
     .sort((a,b) => {
       const order = ['Opener','Match 2','Match 3','Match 4','Match 5','Match 6','Main Event'];
@@ -2867,8 +2889,11 @@ function openEpisodePanel(episodeId) {
     <!-- Episode Header -->
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap">
       <div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;color:${brandColor};text-transform:uppercase;letter-spacing:2px">${brandName(ep.brand_id)}</div>
-        <div style="font-size:13px;color:var(--muted)">Episode ${ep.episode_number} · ${ep.month_label || 'Month ' + ep.month_number}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;color:${brandColorSolid};text-transform:uppercase;letter-spacing:2px">${ep.brand_id === 'all' ? 'ALL BRANDS' : brandName(ep.brand_id)}</div>
+          ${isPLE ? `<span style="background:var(--roh-dim);color:var(--roh);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;padding:2px 8px">🏆 PLE</span>` : ''}
+        </div>
+        <div style="font-size:13px;color:var(--muted)">${isPLE ? ep.month_label || 'PLE Event' : `Episode ${ep.episode_number} · ${ep.month_label || 'Month ' + ep.month_number}`}</div>
       </div>
       <button class="btn btn-ghost btn-sm" onclick="openEpisodeEditModal(${ep.id})">✏ Edit Episode</button>
     </div>
@@ -2935,13 +2960,36 @@ function openEpisodeEditModal(episodeId) {
             <input class="form-input" id="ee-number" type="number" value="${ep.episode_number}">
           </div>
           <div class="form-group">
+            <label class="form-label">Brand</label>
+            <select class="form-select" id="ee-brand">
+              <option value="raw" ${ep.brand_id==='raw'?'selected':''}>RAW</option>
+              <option value="smackdown" ${ep.brand_id==='smackdown'?'selected':''}>SmackDown</option>
+              <option value="roh" ${ep.brand_id==='roh'?'selected':''}>ROH</option>
+              <option value="all" ${ep.brand_id==='all'?'selected':''}>All Brands (PLE)</option>
+            </select>
+          </div>
+          <div class="form-group">
             <label class="form-label">Month</label>
             <input class="form-input" id="ee-month" type="number" value="${ep.month_number || ''}">
           </div>
+        </div>
+        <div class="grid-2">
           <div class="form-group">
-            <label class="form-label">Avg Rating</label>
-            <input class="form-input" id="ee-rating" type="number" step="0.01" value="${ep.avg_rating || ''}">
+            <label class="form-label">Episode Type</label>
+            <select class="form-select" id="ee-type" onchange="document.getElementById('ee-ple-name-group').style.display=this.value!=='regular'?'block':'none'">
+              <option value="regular">Regular Episode</option>
+              <option value="ple">PLE / PPV</option>
+              <option value="special">Special Event</option>
+            </select>
           </div>
+          <div class="form-group" id="ee-ple-name-group" style="display:none">
+            <label class="form-label">Event Name</label>
+            <input class="form-input" id="ee-ple-name" placeholder="e.g. Vengeance" value="${ep.month_label || ''}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Avg Rating</label>
+          <input class="form-input" id="ee-rating" type="number" step="0.01" value="${ep.avg_rating || ''}">
         </div>
         <div class="form-group">
           <label class="form-label">Summary</label>
@@ -2958,15 +3006,20 @@ function openEpisodeEditModal(episodeId) {
 
 async function saveEpisodeEdit(episodeId) {
   const number  = parseInt(document.getElementById('ee-number').value);
+  const brand   = document.getElementById('ee-brand').value;
   const month   = parseInt(document.getElementById('ee-month').value);
   const rating  = parseFloat(document.getElementById('ee-rating').value);
   const summary = document.getElementById('ee-summary').value.trim();
+  const epType  = document.getElementById('ee-type')?.value || 'regular';
+  const pleName = document.getElementById('ee-ple-name')?.value?.trim() || null;
 
   await db.from('episodes').update({
     episode_number: number || null,
+    brand_id: brand || null,
     month_number: month || null,
     avg_rating: !isNaN(rating) ? rating : null,
     summary: summary || null,
+    month_label: pleName || (month ? `Month ${month}` : null),
   }).eq('id', episodeId);
 
   document.getElementById('modal-episode-edit')?.remove();
@@ -3571,6 +3624,8 @@ async function saveEpisode() {
   const brand   = document.getElementById('ep-brand').value;
   const month   = parseInt(document.getElementById('ep-month').value);
   const summary = document.getElementById('ep-summary').value;
+  const epType  = document.getElementById('ep-type')?.value || 'regular';
+  const pleName = document.getElementById('ep-ple-name')?.value?.trim() || null;
 
   if (!epNum || !brand) { toast('Please fill in episode number and brand', 'error'); return; }
 
@@ -3579,6 +3634,7 @@ async function saveEpisode() {
     brand_id: brand,
     month_number: month || null,
     summary: summary || null,
+    month_label: pleName ? pleName : (month ? `Month ${month}` : null),
   }).select().single();
 
   if (epError) { toast('Error saving episode: ' + epError.message, 'error'); return; }
