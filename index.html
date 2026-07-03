@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WWE 2K26 — Universe Mode v6</title>
+<title>WWE 2K26 — Universe Mode v7</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1587,6 +1587,8 @@ body {
     <div class="champ-grid" id="dash-sd-champs"></div>
     <div class="section-title" style="margin-top:28px">ROH Championships</div>
     <div class="champ-grid" id="dash-roh-champs"></div>
+    <div class="section-title" style="margin-top:28px">Cross-Brand Championships</div>
+    <div class="champ-grid" id="dash-cross-champs"></div>
   </div>
 </div>
 
@@ -2464,6 +2466,7 @@ function renderDashboard() {
   renderChampGrid('raw',       'dash-raw-champs');
   renderChampGrid('smackdown', 'dash-sd-champs');
   renderChampGrid('roh',       'dash-roh-champs');
+  renderChampGrid('cross',     'dash-cross-champs');
 
   // Story of the Week — pull from latest published edition
   const latestEdition = allEditions.length ? allEditions[allEditions.length - 1] : null;
@@ -2566,11 +2569,13 @@ function champCard(c, brand) {
 }
 
 function renderChampGrid(brand, elId) {
-  const champs = allChampionships.filter(c => c.brand_id === brand);
+  const champs = allChampionships
+    .filter(c => c.brand_id === brand)
+    .sort((a,b) => (a.display_order||0) - (b.display_order||0));
   const el = document.getElementById(elId);
   if (!el) return;
-  if (!champs.length) { el.innerHTML = '<p style="color:var(--muted);font-size:12px">No championships set up yet.</p>'; return; }
-  el.innerHTML = champs.map(c => champCard(c, brand)).join('');
+  if (!champs.length) { el.innerHTML = ''; return; }
+  el.innerHTML = champs.map(c => champCard(c, brand === 'cross' ? 'raw' : brand)).join('');
 }
 
 // ═══════════════════════════════════════
@@ -2623,7 +2628,7 @@ function renderRoster() {
   const champSection = document.getElementById('roster-champions-section');
   const champs = allChampionships.filter(c =>
     !c.is_vacant && c.current_champion_name &&
-    (currentRosterFilter === 'all' || c.brand_id === currentRosterFilter)
+    (currentRosterFilter === 'all' || c.brand_id === currentRosterFilter || c.brand_id === 'cross')
   );
   if (champs.length) {
     champSection.innerHTML = `
@@ -4771,9 +4776,10 @@ async function renderChampionships() {
   if (!el) return;
 
   const brands = [
-    { id: 'raw',       label: 'RAW',          color: 'var(--raw)', pillClass: 'pill-raw' },
-    { id: 'smackdown', label: 'SMACKDOWN',     color: 'var(--sd)',  pillClass: 'pill-sd'  },
-    { id: 'roh',       label: 'RING OF HONOR', color: 'var(--roh)', pillClass: 'pill-roh' },
+    { id: 'raw',       label: 'RAW',              color: 'var(--raw)', pillClass: 'pill-raw' },
+    { id: 'smackdown', label: 'SMACKDOWN',         color: 'var(--sd)',  pillClass: 'pill-sd'  },
+    { id: 'roh',       label: 'RING OF HONOR',     color: 'var(--roh)', pillClass: 'pill-roh' },
+    { id: 'cross',     label: 'CROSS-BRAND',       color: '#ffffff',    pillClass: 'pill-all' },
   ];
 
   let html = '';
