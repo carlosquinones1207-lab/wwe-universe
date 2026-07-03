@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WWE 2K26 — Universe Mode v5</title>
+<title>WWE 2K26 — Universe Mode v6</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -2489,9 +2489,13 @@ function renderDashboard() {
   if (nextPPV && lookEl) {
     const bc = nextPPV.brand_id === 'smackdown' ? 'sd' : nextPPV.brand_id === 'all' ? null : nextPPV.brand_id;
     const brandColor = !bc || bc === 'none' || bc === 'special' ? 'var(--roh)' : `var(--${bc})`;
+    const ppvImg = `images/ppv/${nextPPV.name.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'')}.png`;
     lookEl.innerHTML = `
       <div class="dash-lookahead-label">📅 Look Ahead</div>
       <div style="height:2px;background:${brandColor};margin-bottom:12px"></div>
+      <img src="${ppvImg}" alt="${nextPPV.name}"
+        style="width:100%;max-height:80px;object-fit:contain;margin-bottom:10px;display:block"
+        onerror="this.style.display='none'">
       <div class="dash-lookahead-name">${nextPPV.name}</div>
       <div class="dash-lookahead-date">${nextPPV.month || '—'} · ${nextPPV.event_type || 'PPV'}</div>
       ${nextPPV.main_event ? `<div class="dash-lookahead-main">${nextPPV.main_event}</div>` : ''}
@@ -2526,13 +2530,37 @@ function champCard(c, brand) {
     daysHtml = `<div class="champ-card-meta" style="color:var(--roh)">${days} day${days !== 1 ? 's' : ''} as champion</div>`;
   }
   const beltImg = BELT_IMAGES[c.name];
+  const champImg = !c.is_vacant && c.current_champion_name
+    ? 'images/superstarimages/' + c.current_champion_name.toLowerCase().replace(/\./g,'').replace(/'/g,'').replace(/\s+/g,'-') + '.png'
+    : null;
+  const brandColor = brand === 'raw' ? 'var(--raw)' : brand === 'smackdown' ? 'var(--sd)' : 'var(--roh)';
+
+  if (!c.is_vacant && c.current_champion_name && champImg) {
+    return `<div class="champ-card ${brand}" style="padding:0;overflow:hidden">
+      <div style="display:grid;grid-template-columns:100px 1fr">
+        <div style="background:#111;overflow:hidden;position:relative;min-height:120px">
+          <img src="${champImg}" alt="${c.current_champion_name}"
+            style="width:100%;height:100%;object-fit:cover;object-position:top;display:block"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:22px;color:${brandColor};background:#111">
+            ${c.current_champion_name.split(' ').map(w=>w[0]).slice(0,2).join('')}
+          </div>
+        </div>
+        <div style="padding:12px 14px">
+          ${beltImg ? `<img src="${beltImg}" alt="${c.name}" style="height:36px;object-fit:contain;display:block;margin-bottom:6px">` : ''}
+          <div class="champ-card-label">${c.name}</div>
+          <div class="champ-card-name">${c.current_champion_name}</div>
+          ${daysHtml}
+          ${c.next_challenger ? `<div class="champ-card-meta">${c.next_challenger}</div>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }
+
   return `<div class="champ-card ${brand}">
     ${beltImg ? `<img src="${beltImg}" alt="${c.name}" style="width:100%;max-height:80px;object-fit:contain;margin-bottom:10px;display:block">` : ''}
     <div class="champ-card-label">${c.name}</div>
-    ${c.is_vacant || !c.current_champion_name
-      ? `<div class="champ-card-vacant">Vacant — Tournament Ongoing</div>`
-      : `<div class="champ-card-name">${c.current_champion_name}</div>`}
-    ${daysHtml}
+    <div class="champ-card-vacant">Vacant — Tournament Ongoing</div>
     ${c.next_challenger ? `<div class="champ-card-meta">${c.next_challenger}</div>` : ''}
   </div>`;
 }
@@ -3831,6 +3859,117 @@ function renderStorylines() {
 // ═══════════════════════════════════════
 // SAVE PPV
 // ═══════════════════════════════════════
+async function deletePPV(id, name) {
+  if (!confirm(`Delete ${name}?`)) return;
+  await db.from('ppv_events').delete().eq('id', id);
+  toast(`${name} deleted`, '');
+  await loadAll();
+}
+
+function openEditPPVModal(id) {
+  const p = allPPVs.find(x => x.id === id);
+  if (!p) return;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay open';
+  overlay.id = 'modal-ppv-edit';
+  overlay.innerHTML = `
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Edit PPV Event</div>
+        <button class="modal-close" onclick="document.getElementById('modal-ppv-edit').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Event Name</label>
+            <input class="form-input" id="pe-name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Month</label>
+            <input class="form-input" id="pe-month">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Brand</label>
+            <select class="form-select" id="pe-brand">
+              <option value="raw">RAW</option>
+              <option value="smackdown">SmackDown</option>
+              <option value="roh">ROH</option>
+              <option value="all">All Brands</option>
+              <option value="special">Special</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Event Type</label>
+            <input class="form-input" id="pe-type">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-select" id="pe-status">
+              <option value="upcoming">Upcoming</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Show Rating</label>
+            <input class="form-input" id="pe-rating" type="number" step="0.01" min="0" max="5">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Main Event</label>
+          <input class="form-input" id="pe-main">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes</label>
+          <textarea class="form-textarea" id="pe-note"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="document.getElementById('modal-ppv-edit').remove()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveEditPPV(${id})">Save</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  // Set values after DOM ready
+  document.getElementById('pe-name').value   = p.name || '';
+  document.getElementById('pe-month').value  = p.month || '';
+  document.getElementById('pe-brand').value  = p.brand_id || 'special';
+  document.getElementById('pe-type').value   = p.event_type || '';
+  document.getElementById('pe-status').value = p.status || 'upcoming';
+  document.getElementById('pe-rating').value = p.show_rating || '';
+  document.getElementById('pe-main').value   = p.main_event || '';
+  document.getElementById('pe-note').value   = p.note || '';
+}
+
+async function saveEditPPV(id) {
+  const name   = document.getElementById('pe-name').value.trim();
+  const month  = document.getElementById('pe-month').value.trim();
+  const brand  = document.getElementById('pe-brand').value;
+  const type   = document.getElementById('pe-type').value.trim();
+  const status = document.getElementById('pe-status').value;
+  const rating = parseFloat(document.getElementById('pe-rating').value);
+  const main   = document.getElementById('pe-main').value.trim();
+  const note   = document.getElementById('pe-note').value.trim();
+
+  if (!name) { toast('Name required', 'error'); return; }
+
+  await db.from('ppv_events').update({
+    name,
+    month: month || null,
+    brand_id: brand,
+    event_type: type || null,
+    status,
+    show_rating: !isNaN(rating) ? rating : null,
+    main_event: main || null,
+    note: note || null,
+  }).eq('id', id);
+
+  document.getElementById('modal-ppv-edit')?.remove();
+  toast('Event updated!', 'success');
+  await loadAll();
+}
+
 async function savePPV() {
   const name   = document.getElementById('ppv-name-input').value.trim();
   const month  = document.getElementById('ppv-month-input').value.trim();
@@ -3860,8 +3999,14 @@ function renderPPV() {
   el.innerHTML = allPPVs.map(p => {
     const bc = p.brand_id || 'special';
     const brandLabel = p.brand_id === 'raw' ? '🔴 RAW' : p.brand_id === 'sd' ? '🔵 SMACKDOWN' : p.brand_id === 'roh' ? '🟡 ROH' : p.brand_id === 'all' ? '⚡ ALL BRANDS' : '⭐ SPECIAL';
+    const ppvImg = `images/ppv/${p.name.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'')}.png`;
     return `<div class="ppv-card">
       <div class="ppv-card-top ${bc}"></div>
+      ${`<div style="position:relative;overflow:hidden;background:#111;min-height:80px">
+        <img src="${ppvImg}" alt="${p.name}"
+          style="width:100%;max-height:120px;object-fit:cover;display:block"
+          onerror="this.parentElement.style.display='none'">
+      </div>`}
       <div class="ppv-card-body">
         <div class="ppv-month">${p.month || '—'}</div>
         <div class="ppv-name">${p.name}</div>
@@ -3869,6 +4014,10 @@ function renderPPV() {
         ${p.main_event ? `<div class="ppv-main">${p.main_event}</div>` : ''}
         <div class="ppv-status ${p.status}">${(p.status||'upcoming').toUpperCase()}</div>
         ${p.note ? `<div class="ppv-note">${p.note}</div>` : ''}
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-ghost btn-sm" onclick="openEditPPVModal(${p.id})">✏ Edit</button>
+          <button class="btn btn-ghost btn-sm" onclick="deletePPV(${p.id},'${p.name}')" style="color:var(--heel)">🗑</button>
+        </div>
       </div>
     </div>`;
   }).join('');
