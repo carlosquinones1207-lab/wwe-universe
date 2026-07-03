@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WWE 2K26 — Universe Mode v7</title>
+<title>WWE 2K26 — Universe Mode v8</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -4771,6 +4771,86 @@ async function deleteSuperstar() {
 // ═══════════════════════════════════════
 // CHAMPIONSHIPS PAGE
 // ═══════════════════════════════════════
+function openChampionshipEditor(id) {
+  const c = allChampionships.find(x => x.id === id);
+  if (!c) return;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay open';
+  overlay.id = 'modal-champ-edit';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:500px">
+      <div class="modal-header">
+        <div class="modal-title">Edit Championship</div>
+        <button class="modal-close" onclick="document.getElementById('modal-champ-edit').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Championship Name</label>
+          <input class="form-input" id="ce-name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Current Champion</label>
+          <input class="form-input" id="ce-champion">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-select" id="ce-vacant">
+            <option value="false">Active — Champion Crowned</option>
+            <option value="true">Vacant</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Reign Start Date</label>
+          <input class="form-input" id="ce-reign-start" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Defenses</label>
+          <input class="form-input" id="ce-defenses" type="number" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Next Challenger / Notes</label>
+          <input class="form-input" id="ce-challenger" placeholder="e.g. #1 Contender TBD">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="document.getElementById('modal-champ-edit').remove()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveChampionshipEdit(${id})">Save</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  document.getElementById('ce-name').value        = c.name || '';
+  document.getElementById('ce-champion').value    = c.current_champion_name || '';
+  document.getElementById('ce-vacant').value      = c.is_vacant ? 'true' : 'false';
+  document.getElementById('ce-reign-start').value = c.reign_start ? c.reign_start.split('T')[0] : '';
+  document.getElementById('ce-defenses').value    = c.defenses || 0;
+  document.getElementById('ce-challenger').value  = c.next_challenger || '';
+}
+
+async function saveChampionshipEdit(id) {
+  const name       = document.getElementById('ce-name').value.trim();
+  const champion   = document.getElementById('ce-champion').value.trim();
+  const isVacant   = document.getElementById('ce-vacant').value === 'true';
+  const reignStart = document.getElementById('ce-reign-start').value;
+  const defenses   = parseInt(document.getElementById('ce-defenses').value) || 0;
+  const challenger = document.getElementById('ce-challenger').value.trim();
+
+  await db.from('championships').update({
+    name: name || undefined,
+    current_champion_name: champion || null,
+    is_vacant: isVacant,
+    reign_start: reignStart || null,
+    defenses,
+    next_challenger: challenger || null,
+  }).eq('id', id);
+
+  document.getElementById('modal-champ-edit')?.remove();
+  toast('Championship updated!', 'success');
+  await loadAll();
+  renderChampionships();
+}
+
 async function renderChampionships() {
   const el = document.getElementById('championships-content');
   if (!el) return;
@@ -4814,11 +4894,13 @@ async function renderChampionships() {
               ${c.is_vacant || !c.current_champion_name
                 ? `<div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;color:var(--muted);font-style:italic">Vacant</div>`
                 : `<div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;color:#fff">${c.current_champion_name}</div>`}
+              ${c.next_challenger ? `<div style="font-size:11px;color:var(--muted);margin-top:4px">${c.next_challenger}</div>` : ''}
             </div>
           </div>
-          <div style="text-align:right">
+          <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+            <button class="btn btn-ghost btn-sm" onclick="openChampionshipEditor(${c.id})">✏ Edit</button>
             ${daysHeld}
-            <div style="font-size:11px;color:var(--muted);margin-top:4px">${reigns.length} reign${reigns.length !== 1 ? 's' : ''}</div>
+            <div style="font-size:11px;color:var(--muted)">${reigns.length} reign${reigns.length !== 1 ? 's' : ''}</div>
           </div>
         </div>`;
 
