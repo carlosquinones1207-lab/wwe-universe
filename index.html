@@ -2603,19 +2603,35 @@ function renderDashboard() {
 
 // ── BELT IMAGES MAP ──────────────────────────────────
 const BELT_IMAGES = {
-  'WWE Undisputed Championship':    'images/WWE_Undisputed_Championship.png',
-  'European Championship':          'images/WWE_European_Championship.png',
-  'World Tag Team Championship':    'images/WWF_World_Tag_Team_Championship_1998-2002.png',
-  'WWE Women\'s Championship':      'images/Womens_Champion.png',
-  'Women\'s IC Championship':       'images/WWE_Women_Intercontinental_Championship.webp',
-  'World Heavyweight Championship': 'images/WWE_Heavyweight.png',
-  'US Championship':                'images/WWE_US_Championship.png',
-  'World Divas Championship':       'images/Divas_Championship.png',
-  'Women\'s US Championship':       'images/WWE_Women_United_States_Championship_PNG.webp',
-  'ROH World Championship':         'images/Rohworld.png',
-  'ROH Pure Championship':          'images/ROH_Pure.png',
-  'ROH World Tag Team Championship':'images/Classic_ROH_tag.png',
+  'Undisputed Championship':          'images/WWE_Undisputed_Championship.png',
+  'European Championship':            'images/WWE_European_Championship.png',
+  "World Tag Team Championship '02-10": 'images/WWF_World_Tag_Team_Championship_1998-2002.png',
+  "Women's Championship '98-10":      'images/Womens_Champion.png',
+  "Women's Intercontinental Championship": 'images/WWE_Women_Intercontinental_Championship.webp',
+  'World Heavyweight Championship':   'images/WWE_Heavyweight.png',
+  "U.S. Championship '03-20":         'images/WWE_US_Championship.png',
+  'Divas Championship':               'images/Divas_Championship.png',
+  "Women's US Championship":          'images/WWE_Women_United_States_Championship_PNG.webp',
+  'ROH World Championship':           'images/Rohworld.png',
+  'ROH Pure Championship':            'images/ROH_Pure.png',
+  'ROH Tag Team Championship':        'images/Classic_ROH_tag.png',
+  // Belts below still need image files uploaded to /images — mapping is
+  // ready to go the moment a file with that path exists in the repo.
+  "Tag Team Championship '02-10":     'images/WWE_Tag_Team_Championship_02-10.png',
+  'AEW World Championship':           'images/AEW_World_Championship.png',
+  'AEW International Championship':   'images/AEW_International_Championship.png',
+  'AEW World Tag Team Championship':  'images/AEW_World_Tag_Team_Championship.png',
+  'AEW Women\'s World Championship': 'images/AEW_Womens_World_Championship.png',
+  'AEW TBS Women\'s Championship':   'images/AEW_TBS_Womens_Championship.png',
+  'TNA World Championship':           'images/TNA_World_Championship.png',
+  'X Division Championship':          'images/TNA_X_Division_Championship.png',
+  'TNA Knockouts World Championship': 'images/TNA_Knockouts_World_Championship.png',
+  'TNA World Tag Team Championship':  'images/TNA_World_Tag_Team_Championship.png',
+  'TNA International Championship':   'images/TNA_International_Championship.png',
+  'NXT Women\'s North American Championship': 'images/NXT_Womens_North_American_Championship.png',
+  'ROH World TV Championship':        'images/ROH_World_TV_Championship.png',
 };
+
 
 function champCard(c, brand) {
   let daysHtml = '';
