@@ -1584,6 +1584,7 @@ body {
       <div class="dash-masthead-meta">
         <div class="dash-masthead-issue" id="dash-state-text">Loading...</div>
         <div class="dash-masthead-phase" id="dash-phase-text"></div>
+        <div class="dash-masthead-phase" id="dash-month-text" style="margin-top:2px"></div>
       </div>
     </div>
     <div class="dash-feature">
@@ -2248,6 +2249,7 @@ let allFactions = [];
 let allStorylines = [];
 let allPPVs = [];
 let allTournaments = [];
+let universeState = { current_week: 1, current_phase: '', current_month: 5 };
 let currentRosterFilter = 'all';
 let draftSession = null;
 let matchRowCount = 0;
@@ -2535,10 +2537,16 @@ async function loadAll() {
 
   const state = await db.from('universe_state').select('*').single();
   if (state.data) {
+    universeState = state.data;
     const stateEl = document.getElementById('dash-state-text');
     const phaseEl = document.getElementById('dash-phase-text');
+    const monthEl = document.getElementById('dash-month-text');
     if (stateEl) stateEl.textContent = state.data.current_week;
     if (phaseEl) phaseEl.textContent = state.data.current_phase;
+    if (monthEl) {
+      const monthNames = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
+      monthEl.textContent = 'Currently: ' + (monthNames[state.data.current_month] || 'Month ' + state.data.current_month);
+    }
   }
 
   renderDashboard();
@@ -2595,8 +2603,13 @@ function renderDashboard() {
     }
   }
 
-  // Look Ahead — next upcoming PPV (skip 'none' brand entries)
-  const nextPPV = allPPVs.find(p => p.status === 'upcoming' && p.brand_id !== 'none');
+  // Look Ahead — next upcoming PPV, relative to the universe's actual current month
+  const upcoming = allPPVs.filter(p => p.status === 'upcoming' && p.brand_id !== 'none');
+  const curMonth = universeState.current_month || 1;
+  const laterThisYear = upcoming.filter(p => (p.month_number || 0) >= curMonth)
+    .sort((a, b) => (a.month_number || 0) - (b.month_number || 0));
+  const wrapToNextYear = upcoming.slice().sort((a, b) => (a.month_number || 0) - (b.month_number || 0));
+  const nextPPV = laterThisYear[0] || wrapToNextYear[0];
   const lookEl = document.getElementById('dash-lookahead');
   if (nextPPV && lookEl) {
     const bc = nextPPV.brand_id === 'smackdown' ? 'sd' : nextPPV.brand_id === 'all' ? null : nextPPV.brand_id;
@@ -3826,6 +3839,12 @@ async function saveEpisode() {
 
   if (epError) { toast('Error saving episode: ' + epError.message, 'error'); return; }
 
+  // Advance the universe's current month if this episode is later than where we were
+  if (month && month > (universeState.current_month || 0)) {
+    await db.from('universe_state').update({ current_month: month }).eq('id', universeState.id);
+    universeState.current_month = month;
+  }
+
   // Save matches
   const matchRows = document.querySelectorAll('.match-entry-row');
   const matchInserts = [];
@@ -4141,8 +4160,13 @@ async function savePPV() {
 
   if (!name) { toast('Event name required', 'error'); return; }
 
+  const monthNames = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+  const monthLower = month.toLowerCase();
+  const matchedMonth = monthNames.findIndex(m => monthLower.includes(m));
+  const monthNumber = matchedMonth !== -1 ? matchedMonth + 1 : null;
+
   await db.from('ppv_events').insert({
-    name, month: month || null, brand_id: brand,
+    name, month: month || null, month_number: monthNumber, brand_id: brand,
     status, main_event: main || null, note: note || null,
   });
 
