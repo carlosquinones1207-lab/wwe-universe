@@ -2629,6 +2629,21 @@ const BELT_IMAGES = {
   'ROH World TV Championship':        'images/ROH_World_TV_Championship.png',
 };
 
+// Per-belt size multiplier — lets individual belt images be scaled up or
+// down relative to the default size, since source images vary a lot in
+// native resolution/aspect ratio. 1 = default size, >1 = bigger, <1 = smaller.
+const BELT_SIZE_OVERRIDES = {
+  'AEW World Championship':        1.35,
+  'ROH World TV Championship':     1.35,
+  'ROH World Championship':        0.7,
+  'TNA World Championship':        0.7,
+  'Undisputed Championship':       0.7,
+};
+function beltSize(name, base) {
+  return Math.round(base * (BELT_SIZE_OVERRIDES[name] || 1));
+}
+
+
 
 function champCard(c, brand) {
   let daysHtml = '';
@@ -2656,7 +2671,7 @@ function champCard(c, brand) {
           </div>
         </div>
         <div style="padding:12px 14px">
-          ${beltImg ? `<img src="${beltImg}" alt="${c.name}" style="height:56px;object-fit:contain;display:block;margin-bottom:6px">` : ''}
+          ${beltImg ? `<img src="${beltImg}" alt="${c.name}" style="height:${beltSize(c.name,56)}px;object-fit:contain;display:block;margin-bottom:6px">` : ''}
           <div class="champ-card-label">${c.name}</div>
           <div class="champ-card-name">${c.current_champion_name}</div>
           ${daysHtml}
@@ -2667,7 +2682,7 @@ function champCard(c, brand) {
   }
 
   return `<div class="champ-card ${brand}">
-    ${beltImg ? `<img src="${beltImg}" alt="${c.name}" style="width:100%;max-height:130px;object-fit:contain;margin-bottom:10px;display:block">` : ''}
+    ${beltImg ? `<img src="${beltImg}" alt="${c.name}" style="width:100%;max-height:${beltSize(c.name,130)}px;object-fit:contain;margin-bottom:10px;display:block">` : ''}
     <div class="champ-card-label">${c.name}</div>
     <div class="champ-card-vacant">Vacant — Tournament Ongoing</div>
     ${c.next_challenger ? `<div class="champ-card-meta">${c.next_challenger}</div>` : ''}
@@ -5016,7 +5031,7 @@ async function renderChampionships() {
         <div style="height:3px;background:${brand.color}"></div>
         <div style="padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px">
           <div style="display:flex;align-items:center;gap:16px;flex:1">
-            ${BELT_IMAGES[c.name] ? `<img src="${BELT_IMAGES[c.name]}" alt="${c.name}" style="height:90px;width:auto;object-fit:contain;flex-shrink:0">` : ''}
+            ${BELT_IMAGES[c.name] ? `<img src="${BELT_IMAGES[c.name]}" alt="${c.name}" style="height:${beltSize(c.name,90)}px;width:auto;object-fit:contain;flex-shrink:0">` : ''}
             <div>
               <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">${c.name}</div>
               ${c.is_vacant || !c.current_champion_name
