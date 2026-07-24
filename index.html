@@ -1622,8 +1622,6 @@ body {
     <div class="champ-grid" id="dash-tna-champs"></div>
     <div class="section-title" style="margin-top:28px">ROH Championships</div>
     <div class="champ-grid" id="dash-roh-champs"></div>
-    <div class="section-title" style="margin-top:28px">Cross-Brand Championships</div>
-    <div class="champ-grid" id="dash-cross-champs"></div>
   </div>
 </div>
 
@@ -2559,7 +2557,6 @@ function renderDashboard() {
   renderChampGrid('aew',       'dash-aew-champs');
   renderChampGrid('tna',       'dash-tna-champs');
   renderChampGrid('roh',       'dash-roh-champs');
-  renderChampGrid('cross',     'dash-cross-champs');
 
   // Story of the Week — pull from latest published edition
   const latestEdition = allEditions.length ? allEditions[allEditions.length - 1] : null;
@@ -2659,7 +2656,7 @@ function champCard(c, brand) {
           </div>
         </div>
         <div style="padding:12px 14px">
-          ${beltImg ? `<img src="${beltImg}" alt="${c.name}" style="height:36px;object-fit:contain;display:block;margin-bottom:6px">` : ''}
+          ${beltImg ? `<img src="${beltImg}" alt="${c.name}" style="height:56px;object-fit:contain;display:block;margin-bottom:6px">` : ''}
           <div class="champ-card-label">${c.name}</div>
           <div class="champ-card-name">${c.current_champion_name}</div>
           ${daysHtml}
@@ -2670,7 +2667,7 @@ function champCard(c, brand) {
   }
 
   return `<div class="champ-card ${brand}">
-    ${beltImg ? `<img src="${beltImg}" alt="${c.name}" style="width:100%;max-height:80px;object-fit:contain;margin-bottom:10px;display:block">` : ''}
+    ${beltImg ? `<img src="${beltImg}" alt="${c.name}" style="width:100%;max-height:130px;object-fit:contain;margin-bottom:10px;display:block">` : ''}
     <div class="champ-card-label">${c.name}</div>
     <div class="champ-card-vacant">Vacant — Tournament Ongoing</div>
     ${c.next_challenger ? `<div class="champ-card-meta">${c.next_challenger}</div>` : ''}
@@ -2684,7 +2681,7 @@ function renderChampGrid(brand, elId) {
   const el = document.getElementById(elId);
   if (!el) return;
   if (!champs.length) { el.innerHTML = ''; return; }
-  el.innerHTML = champs.map(c => champCard(c, brand === 'cross' ? 'raw' : brand)).join('');
+  el.innerHTML = champs.map(c => champCard(c, brand)).join('');
 }
 
 // ═══════════════════════════════════════
@@ -2737,7 +2734,7 @@ function renderRoster() {
   const champSection = document.getElementById('roster-champions-section');
   const champs = allChampionships.filter(c =>
     !c.is_vacant && c.current_champion_name &&
-    (currentRosterFilter === 'all' || c.brand_id === currentRosterFilter || c.brand_id === 'cross')
+    (currentRosterFilter === 'all' || c.brand_id === currentRosterFilter)
   );
   if (champs.length) {
     champSection.innerHTML = `
@@ -4989,7 +4986,6 @@ async function renderChampionships() {
     { id: 'aew',       label: 'AEW DYNAMITE',      color: 'var(--aew)', pillClass: 'pill-aew' },
     { id: 'tna',       label: 'TNA IMPACT!',       color: 'var(--tna)', pillClass: 'pill-tna' },
     { id: 'roh',       label: 'RING OF HONOR',     color: 'var(--roh)', pillClass: 'pill-roh' },
-    { id: 'cross',     label: 'CROSS-BRAND',       color: '#ffffff',    pillClass: 'pill-all' },
   ];
 
   let html = '';
@@ -5020,7 +5016,7 @@ async function renderChampionships() {
         <div style="height:3px;background:${brand.color}"></div>
         <div style="padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px">
           <div style="display:flex;align-items:center;gap:16px;flex:1">
-            ${BELT_IMAGES[c.name] ? `<img src="${BELT_IMAGES[c.name]}" alt="${c.name}" style="height:60px;width:auto;object-fit:contain;flex-shrink:0">` : ''}
+            ${BELT_IMAGES[c.name] ? `<img src="${BELT_IMAGES[c.name]}" alt="${c.name}" style="height:90px;width:auto;object-fit:contain;flex-shrink:0">` : ''}
             <div>
               <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">${c.name}</div>
               ${c.is_vacant || !c.current_champion_name
