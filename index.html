@@ -1616,12 +1616,12 @@ body {
     <div class="champ-grid" id="dash-raw-champs"></div>
     <div class="section-title" style="margin-top:28px">SmackDown Championships</div>
     <div class="champ-grid" id="dash-sd-champs"></div>
-    <div class="section-title" style="margin-top:28px">ROH Championships</div>
-    <div class="champ-grid" id="dash-roh-champs"></div>
     <div class="section-title" style="margin-top:28px">AEW Championships</div>
     <div class="champ-grid" id="dash-aew-champs"></div>
     <div class="section-title" style="margin-top:28px">TNA Championships</div>
     <div class="champ-grid" id="dash-tna-champs"></div>
+    <div class="section-title" style="margin-top:28px">ROH Championships</div>
+    <div class="champ-grid" id="dash-roh-champs"></div>
     <div class="section-title" style="margin-top:28px">Cross-Brand Championships</div>
     <div class="champ-grid" id="dash-cross-champs"></div>
   </div>
@@ -2556,9 +2556,9 @@ function renderDashboard() {
   try {
   renderChampGrid('raw',       'dash-raw-champs');
   renderChampGrid('smackdown', 'dash-sd-champs');
-  renderChampGrid('roh',       'dash-roh-champs');
   renderChampGrid('aew',       'dash-aew-champs');
   renderChampGrid('tna',       'dash-tna-champs');
+  renderChampGrid('roh',       'dash-roh-champs');
   renderChampGrid('cross',     'dash-cross-champs');
 
   // Story of the Week — pull from latest published edition
@@ -2624,7 +2624,7 @@ const BELT_IMAGES = {
   'AEW Women\'s World Championship': 'images/AEW_Womens_World_Championship.png',
   'AEW TBS Women\'s Championship':   'images/AEW_TBS_Womens_Championship.png',
   'TNA World Championship':           'images/TNA_World_Championship.png',
-  'X Division Championship':          'images/TNA_X_Division_Championship.png',
+  'X Division Championship':          'images/TNA-X-Division-Championship.png',
   'TNA Knockouts World Championship': 'images/TNA_Knockouts_World_Championship.png',
   'TNA World Tag Team Championship':  'images/TNA_World_Tag_Team_Championship.png',
   'TNA International Championship':   'images/TNA_International_Championship.png',
@@ -4933,6 +4933,10 @@ function openChampionshipEditor(id) {
           <label class="form-label">Next Challenger / Notes</label>
           <input class="form-input" id="ce-challenger" placeholder="e.g. #1 Contender TBD">
         </div>
+        <div class="form-group">
+          <label class="form-label">Display Order (lower = shows first within this show)</label>
+          <input class="form-input" id="ce-order" type="number" min="0">
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="document.getElementById('modal-champ-edit').remove()">Cancel</button>
@@ -4947,6 +4951,7 @@ function openChampionshipEditor(id) {
   document.getElementById('ce-reign-start').value = c.reign_start ? c.reign_start.split('T')[0] : '';
   document.getElementById('ce-defenses').value    = c.defenses || 0;
   document.getElementById('ce-challenger').value  = c.next_challenger || '';
+  document.getElementById('ce-order').value       = c.display_order || 0;
 }
 
 async function saveChampionshipEdit(id) {
@@ -4956,6 +4961,7 @@ async function saveChampionshipEdit(id) {
   const reignStart = document.getElementById('ce-reign-start').value;
   const defenses   = parseInt(document.getElementById('ce-defenses').value) || 0;
   const challenger = document.getElementById('ce-challenger').value.trim();
+  const displayOrder = parseInt(document.getElementById('ce-order').value) || 0;
 
   await db.from('championships').update({
     name: name || undefined,
@@ -4964,6 +4970,7 @@ async function saveChampionshipEdit(id) {
     reign_start: reignStart || null,
     defenses,
     next_challenger: challenger || null,
+    display_order: displayOrder,
   }).eq('id', id);
 
   document.getElementById('modal-champ-edit')?.remove();
@@ -4979,15 +4986,17 @@ async function renderChampionships() {
   const brands = [
     { id: 'raw',       label: 'RAW',              color: 'var(--raw)', pillClass: 'pill-raw' },
     { id: 'smackdown', label: 'SMACKDOWN',         color: 'var(--sd)',  pillClass: 'pill-sd'  },
-    { id: 'roh',       label: 'RING OF HONOR',     color: 'var(--roh)', pillClass: 'pill-roh' },
     { id: 'aew',       label: 'AEW DYNAMITE',      color: 'var(--aew)', pillClass: 'pill-aew' },
     { id: 'tna',       label: 'TNA IMPACT!',       color: 'var(--tna)', pillClass: 'pill-tna' },
+    { id: 'roh',       label: 'RING OF HONOR',     color: 'var(--roh)', pillClass: 'pill-roh' },
     { id: 'cross',     label: 'CROSS-BRAND',       color: '#ffffff',    pillClass: 'pill-all' },
   ];
 
   let html = '';
   for (const brand of brands) {
-    const champs = allChampionships.filter(c => c.brand_id === brand.id);
+    const champs = allChampionships
+      .filter(c => c.brand_id === brand.id)
+      .sort((a,b) => (a.display_order||0) - (b.display_order||0));
     if (!champs.length) continue;
 
     html += `<div style="margin-bottom:40px">
