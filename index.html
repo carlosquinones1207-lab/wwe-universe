@@ -1995,6 +1995,9 @@ body {
   <div class="container">
     <div class="section-title">Tier Standings</div>
     <div id="standings-content"></div>
+    <div class="section-title" style="margin-top:40px">Draft Tracker</div>
+    <button class="btn btn-primary btn-sm" style="margin-bottom:16px" onclick="openLogDraftMoveModal()">+ Log a Draft Move</button>
+    <div id="draft-history-content"></div>
   </div>
 </div>
 
@@ -2398,6 +2401,7 @@ let allPPVs = [];
 let allTournaments = [];
 let universeState = { current_week: 1, current_phase: '', current_month: 5 };
 let allShows = [];
+let allDraftHistory = [];
 let currentRosterFilter = 'all';
 let draftSession = null;
 let matchRowCount = 0;
@@ -2415,7 +2419,7 @@ function showPage(name) {
     }
   });
   if (name === 'championships') renderChampionships();
-  if (name === 'standings') renderStandings();
+  if (name === 'standings') { renderStandings(); renderDraftHistory(); }
   if (name === 'magazine') { loadEditions().then(() => { currentEditionIndex = allEditions.length - 1; renderMagazine(); }); }
   window.scrollTo(0,0);
 }
@@ -2661,7 +2665,7 @@ function removeMatchRow(n) {
 // LOAD DATA
 // ═══════════════════════════════════════
 async function loadAll() {
-  const [ss, champs, eps, matches, factions, stories, ppvs, tournaments, showsData] = await Promise.all([
+  const [ss, champs, eps, matches, factions, stories, ppvs, tournaments, showsData, draftHistData] = await Promise.all([
     db.from('superstars').select('*').order('name'),
     db.from('championships').select('*').order('brand_id'),
     db.from('episodes').select('*').order('created_at', {ascending: false}),
@@ -2671,6 +2675,7 @@ async function loadAll() {
     db.from('ppv_events').select('*').order('month_number'),
     db.from('tournaments').select('*'),
     db.from('shows').select('*').order('tier'),
+    db.from('draft_history').select('*').order('created_at', {ascending: false}),
   ]);
 
   allSuperstars     = ss.data || [];
@@ -2682,6 +2687,7 @@ async function loadAll() {
   allPPVs           = ppvs.data || [];
   allTournaments    = tournaments.data || [];
   allShows          = showsData.data || [];
+  allDraftHistory   = draftHistData.data || [];
 
   // Load editions for dashboard
   await loadEditions();
@@ -5265,9 +5271,114 @@ async function showChampionshipHistory(id) {
 }
 
 
-// ═══════════════════════════════════════
-// TIER STANDINGS
-// ═══════════════════════════════════════
+function openLogDraftMoveModal() {
+  const showOptions = allShows.length
+    ? allShows.map(s => `<option value="${s.id}">${s.name}</option>`).join('')
+    : ['raw','smackdown','aew','tna','roh','nxt','evolve','thunder'].map(id => `<option value="${id}">${id}</option>`).join('');
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay open';
+  overlay.id = 'modal-log-draft';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:460px">
+      <div class="modal-header">
+        <div class="modal-title">Log a Draft Move</div>
+        <button class="modal-close" onclick="document.getElementById('modal-log-draft').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Wrestler Name</label>
+          <input class="form-input" id="ld-name" placeholder="Start typing to search your roster" list="ld-name-list">
+          <datalist id="ld-name-list">
+            ${allSuperstars.map(s => `<option value="${s.name}">`).join('')}
+          </datalist>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">From Show</label>
+            <select class="form-select" id="ld-from">${showOptions}</select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">To Show</label>
+            <select class="form-select" id="ld-to">${showOptions}</select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Direction</label>
+          <select class="form-select" id="ld-direction">
+            <option value="promotion">Promotion</option>
+            <option value="relegation">Relegation</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Year / Label (optional)</label>
+          <input class="form-input" id="ld-year" placeholder="e.g. Year 1, 2026">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes (optional)</label>
+          <input class="form-input" id="ld-notes" placeholder="e.g. Champions League winner, first pick">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="document.getElementById('modal-log-draft').remove()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveLogDraftMove()">Log Move & Update Roster</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function saveLogDraftMove() {
+  const name = document.getElementById('ld-name').value.trim();
+  const fromShow = document.getElementById('ld-from').value;
+  const toShow = document.getElementById('ld-to').value;
+  const direction = document.getElementById('ld-direction').value;
+  const yearLabel = document.getElementById('ld-year').value.trim();
+  const notes = document.getElementById('ld-notes').value.trim();
+
+  if (!name) { toast('Wrestler name required', 'error'); return; }
+
+  const ss = allSuperstars.find(s => s.name.toLowerCase() === name.toLowerCase());
+  if (!ss) { toast('No wrestler found with that exact name', 'error'); return; }
+
+  await db.from('draft_history').insert({
+    superstar_name: name, from_show: fromShow, to_show: toShow,
+    direction, year_label: yearLabel || null, notes: notes || null,
+  });
+
+  await db.from('superstars').update({ brand_id: toShow }).eq('id', ss.id);
+
+  document.getElementById('modal-log-draft')?.remove();
+  toast(`${name} moved to ${brandName(toShow)}!`, 'success');
+  await loadAll();
+  renderStandings();
+  renderDraftHistory();
+}
+
+function renderDraftHistory() {
+  const el = document.getElementById('draft-history-content');
+  if (!el) return;
+  if (!allDraftHistory.length) {
+    el.innerHTML = '<p style="color:var(--muted);font-size:13px">No draft moves logged yet.</p>';
+    return;
+  }
+  el.innerHTML = allDraftHistory.map(d => {
+    const arrow = d.direction === 'promotion' ? '⬆' : '⬇';
+    const color = d.direction === 'promotion' ? '#22c55e' : '#ef4444';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <span style="font-weight:600">${d.superstar_name}</span>
+        <span style="color:var(--muted);font-size:13px"> — ${brandName(d.from_show)} → ${brandName(d.to_show)}</span>
+        ${d.notes ? `<div style="font-size:12px;color:var(--muted)">${d.notes}</div>` : ''}
+      </div>
+      <div style="text-align:right">
+        <span style="color:${color};font-weight:700">${arrow} ${d.direction}</span>
+        ${d.year_label ? `<div style="font-size:11px;color:var(--muted)">${d.year_label}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+
 function showColorVar(showId) {
   const map = { smackdown: 'sd' };
   return `var(--${map[showId] || showId})`;
