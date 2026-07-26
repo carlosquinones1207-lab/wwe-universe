@@ -36,6 +36,15 @@
   --tna:      #00a3e0;
   --tna-glow: rgba(0,163,224,0.15);
   --tna-dim:  #002a3d;
+  --nxt:      #f5c400;
+  --nxt-glow: rgba(245,196,0,0.15);
+  --nxt-dim:  #3d3000;
+  --evolve:      #00b8a9;
+  --evolve-glow: rgba(0,184,169,0.15);
+  --evolve-dim:  #003330;
+  --thunder:      #8a2be2;
+  --thunder-glow: rgba(138,43,226,0.15);
+  --thunder-dim:  #22103d;
   --text:     #e8e8e8;
   --muted:    #777;
   --muted2:   #555;
@@ -85,7 +94,7 @@ body {
 }
 .mag-rule.sd  { background: var(--sd); }
 .mag-rule.roh { background: var(--roh); }
-.mag-rule.multi { background: linear-gradient(90deg, var(--raw), var(--sd), var(--roh), var(--aew), var(--tna)); }
+.mag-rule.multi { background: linear-gradient(90deg, var(--raw), var(--sd), var(--roh), var(--aew), var(--tna), var(--nxt), var(--evolve), var(--thunder)); }
 
 /* ═══════════════════════════════════════
    LOADING SCREEN
@@ -238,6 +247,9 @@ body {
 .pill-roh  { background: var(--roh-dim);  color: var(--roh); }
 .pill-aew  { background: var(--aew-dim);  color: var(--aew); }
 .pill-tna  { background: var(--tna-dim);  color: var(--tna); }
+.pill-nxt  { background: var(--nxt-dim);  color: var(--nxt); }
+.pill-evolve  { background: var(--evolve-dim);  color: var(--evolve); }
+.pill-thunder  { background: var(--thunder-dim);  color: var(--thunder); }
 .pill-all  { background: #222; color: #aaa; }
 
 .align-face    { color: var(--face); }
@@ -269,6 +281,9 @@ body {
 .btn-roh { background: var(--roh); color: #000; }
 .btn-aew { background: var(--aew); color: #000; }
 .btn-tna { background: var(--tna); color: #fff; }
+.btn-nxt { background: var(--nxt); color: #000; }
+.btn-evolve { background: var(--evolve); color: #000; }
+.btn-thunder { background: var(--thunder); color: #fff; }
 .btn-sm { padding: 6px 14px; font-size: 11px; }
 .btn-danger { background: var(--heel); color: #fff; }
 
@@ -596,6 +611,9 @@ body {
 .roh-color  { color: #a8443a; font-family: 'Playfair Display', serif; font-style: italic; font-weight: 900; letter-spacing: 0; }
 .aew-color  { color: #fff; font-family: 'Rajdhani', sans-serif; font-weight: 700; -webkit-text-stroke: 1.5px #e0a868; paint-order: stroke fill; text-shadow: -1px -1px 0 #e0a868, 1px -1px 0 #e0a868, -1px 1px 0 #e0a868, 1px 1px 0 #e0a868; }
 .tna-color  { color: #e0392f; font-family: 'Bungee', sans-serif; letter-spacing: -1px; }
+.nxt-color  { color: var(--nxt); font-family: 'Anton', sans-serif; font-style: italic; }
+.evolve-color  { color: var(--evolve); font-family: 'Rajdhani', sans-serif; font-weight: 700; letter-spacing: 2px; }
+.thunder-color  { color: var(--thunder); font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
 .brand-card-gm { font-size: 12px; color: var(--muted); margin-top: 6px; }
 .brand-card-identity { font-size: 11px; color: var(--muted2); margin-top: 4px; font-style: italic; }
 
@@ -683,6 +701,9 @@ body {
 .show-card.roh::after   { background: var(--roh); }
 .show-card.aew::after   { background: var(--aew); }
 .show-card.tna::after   { background: var(--tna); }
+.show-card.nxt::after   { background: var(--nxt); }
+.show-card.evolve::after   { background: var(--evolve); }
+.show-card.thunder::after   { background: var(--thunder); }
 .show-card:hover { background: var(--card2); }
 .show-card-name {
   font-family: 'Anton', 'Barlow Condensed', sans-serif;
@@ -742,6 +763,9 @@ body {
 .filter-btn.active.roh { background: var(--roh-dim); color: var(--roh); border-color: var(--roh); }
 .filter-btn.active.aew { background: var(--aew-dim); color: var(--aew); border-color: var(--aew); }
 .filter-btn.active.tna { background: var(--tna-dim); color: var(--tna); border-color: var(--tna); }
+.filter-btn.active.nxt { background: var(--nxt-dim); color: var(--nxt); border-color: var(--nxt); }
+.filter-btn.active.evolve { background: var(--evolve-dim); color: var(--evolve); border-color: var(--evolve); }
+.filter-btn.active.thunder { background: var(--thunder-dim); color: var(--thunder); border-color: var(--thunder); }
 .filter-btn.active.all { background: var(--marquee-dim); color: var(--marquee); border-color: var(--marquee); }
 
 .champions-row {
@@ -1155,7 +1179,7 @@ body {
 .ppv-card-top.raw   { background: var(--raw); }
 .ppv-card-top.sd    { background: var(--sd);  }
 .ppv-card-top.roh   { background: var(--roh); }
-.ppv-card-top.all   { background: linear-gradient(90deg,var(--raw),var(--sd),var(--roh),var(--aew),var(--tna)); }
+.ppv-card-top.all   { background: linear-gradient(90deg,var(--raw),var(--sd),var(--roh),var(--aew),var(--tna),var(--nxt),var(--evolve),var(--thunder)); }
 .ppv-card-top.special { background: #555; }
 .ppv-card-body { padding: 16px; }
 .ppv-month { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
@@ -1279,6 +1303,9 @@ body {
 .draft-brand-head.roh { color: var(--roh); }
 .draft-brand-head.aew { color: var(--aew); }
 .draft-brand-head.tna { color: var(--tna); }
+.draft-brand-head.nxt { color: var(--nxt); }
+.draft-brand-head.evolve { color: var(--evolve); }
+.draft-brand-head.thunder { color: var(--thunder); }
 .draft-pick-item {
   padding: 8px 16px;
   border-bottom: 1px solid var(--border);
@@ -1629,6 +1656,24 @@ body {
       <div class="brand-card-gm" style="text-align:center">VP: Santino Marella</div>
       <div class="brand-card-identity" style="text-align:center;color:var(--tna);font-style:normal;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;font-size:12px;margin-top:6px">"Total Nonstop Action"</div>
     </div>
+    <div class="brand-card" onclick="showPage('shows')">
+      <img src="images/nxt.png" alt="NXT" style="height:70px;object-fit:contain;margin:0 auto 10px;display:block">
+      <div class="brand-card-name nxt-color" style="text-align:center">NXT</div>
+      <div class="brand-card-gm" style="text-align:center">GM: Ava</div>
+      <div class="brand-card-identity" style="text-align:center;color:var(--nxt);font-style:normal;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;font-size:12px;margin-top:6px">"Where Legends Are Made"</div>
+    </div>
+    <div class="brand-card" onclick="showPage('shows')">
+      <img src="images/evolve.png" alt="Evolve" style="height:70px;object-fit:contain;margin:0 auto 10px;display:block">
+      <div class="brand-card-name evolve-color" style="text-align:center">Evolve</div>
+      <div class="brand-card-gm" style="text-align:center">GM: Robert Stone</div>
+      <div class="brand-card-identity" style="text-align:center;color:var(--evolve);font-style:normal;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;font-size:12px;margin-top:6px">"Prove It"</div>
+    </div>
+    <div class="brand-card" onclick="showPage('shows')">
+      <img src="images/thunder.png" alt="WCW Thunder" style="height:70px;object-fit:contain;margin:0 auto 10px;display:block">
+      <div class="brand-card-name thunder-color" style="text-align:center">WCW Thunder</div>
+      <div class="brand-card-gm" style="text-align:center">Executive Producer: Eric Bischoff</div>
+      <div class="brand-card-identity" style="text-align:center;color:var(--thunder);font-style:normal;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;font-size:12px;margin-top:6px">"Where Thunder Strikes"</div>
+    </div>
   </div>
   <div class="container">
     <div class="section-title">RAW Championships</div>
@@ -1641,6 +1686,12 @@ body {
     <div class="champ-grid" id="dash-tna-champs"></div>
     <div class="section-title" style="margin-top:28px">ROH Championships</div>
     <div class="champ-grid" id="dash-roh-champs"></div>
+    <div class="section-title" style="margin-top:28px">NXT Championships</div>
+    <div class="champ-grid" id="dash-nxt-champs"></div>
+    <div class="section-title" style="margin-top:28px">Evolve Championships</div>
+    <div class="champ-grid" id="dash-evolve-champs"></div>
+    <div class="section-title" style="margin-top:28px">WCW Thunder Championships</div>
+    <div class="champ-grid" id="dash-thunder-champs"></div>
   </div>
 </div>
 
@@ -1697,7 +1748,7 @@ body {
             <div class="show-stat-label">Superstars</div>
           </div>
           <div class="show-stat-item">
-            <div class="show-stat-num">5</div>
+            <div class="show-stat-num">4</div>
             <div class="show-stat-label">Titles</div>
           </div>
           <div class="show-stat-item">
@@ -1716,7 +1767,7 @@ body {
             <div class="show-stat-label">Superstars</div>
           </div>
           <div class="show-stat-item">
-            <div class="show-stat-num">5</div>
+            <div class="show-stat-num">4</div>
             <div class="show-stat-label">Titles</div>
           </div>
           <div class="show-stat-item">
@@ -1754,7 +1805,7 @@ body {
             <div class="show-stat-label">Superstars</div>
           </div>
           <div class="show-stat-item">
-            <div class="show-stat-num">5</div>
+            <div class="show-stat-num">4</div>
             <div class="show-stat-label">Titles</div>
           </div>
           <div class="show-stat-item">
@@ -1773,11 +1824,68 @@ body {
             <div class="show-stat-label">Superstars</div>
           </div>
           <div class="show-stat-item">
-            <div class="show-stat-num">6</div>
+            <div class="show-stat-num">4</div>
             <div class="show-stat-label">Titles</div>
           </div>
           <div class="show-stat-item">
             <div class="show-stat-num" id="show-tna-eps">—</div>
+            <div class="show-stat-label">Episodes</div>
+          </div>
+        </div>
+      </div>
+      <div class="show-card nxt" onclick="showRosterFor('nxt')">
+        <img src="images/nxt.png" alt="NXT" style="height:56px;object-fit:contain;margin-bottom:12px;display:block">
+        <div class="show-card-gm">GM: Ava</div>
+        <div class="show-card-identity">"Where Legends Are Made"</div>
+        <div class="show-card-stat">
+          <div class="show-stat-item">
+            <div class="show-stat-num" id="show-nxt-count">—</div>
+            <div class="show-stat-label">Superstars</div>
+          </div>
+          <div class="show-stat-item">
+            <div class="show-stat-num">4</div>
+            <div class="show-stat-label">Titles</div>
+          </div>
+          <div class="show-stat-item">
+            <div class="show-stat-num" id="show-nxt-eps">—</div>
+            <div class="show-stat-label">Episodes</div>
+          </div>
+        </div>
+      </div>
+      <div class="show-card evolve" onclick="showRosterFor('evolve')">
+        <img src="images/evolve.png" alt="Evolve" style="height:56px;object-fit:contain;margin-bottom:12px;display:block">
+        <div class="show-card-gm">GM: Robert Stone</div>
+        <div class="show-card-identity">"Prove It"</div>
+        <div class="show-card-stat">
+          <div class="show-stat-item">
+            <div class="show-stat-num" id="show-evolve-count">—</div>
+            <div class="show-stat-label">Superstars</div>
+          </div>
+          <div class="show-stat-item">
+            <div class="show-stat-num">3</div>
+            <div class="show-stat-label">Titles</div>
+          </div>
+          <div class="show-stat-item">
+            <div class="show-stat-num" id="show-evolve-eps">—</div>
+            <div class="show-stat-label">Episodes</div>
+          </div>
+        </div>
+      </div>
+      <div class="show-card thunder" onclick="showRosterFor('thunder')">
+        <img src="images/thunder.png" alt="WCW Thunder" style="height:56px;object-fit:contain;margin-bottom:12px;display:block">
+        <div class="show-card-gm">Executive Producer: Eric Bischoff</div>
+        <div class="show-card-identity">"Where Thunder Strikes"</div>
+        <div class="show-card-stat">
+          <div class="show-stat-item">
+            <div class="show-stat-num" id="show-thunder-count">—</div>
+            <div class="show-stat-label">Superstars</div>
+          </div>
+          <div class="show-stat-item">
+            <div class="show-stat-num">3</div>
+            <div class="show-stat-label">Titles</div>
+          </div>
+          <div class="show-stat-item">
+            <div class="show-stat-num" id="show-thunder-eps">—</div>
             <div class="show-stat-label">Episodes</div>
           </div>
         </div>
@@ -1800,6 +1908,9 @@ body {
       <button class="filter-btn raw" onclick="filterRoster('raw',this)">RAW</button>
       <button class="filter-btn sd"  onclick="filterRoster('smackdown',this)">SmackDown</button>
       <button class="filter-btn roh" onclick="filterRoster('roh',this)">ROH</button>
+      <button class="filter-btn nxt" onclick="filterRoster('nxt',this)">NXT</button>
+      <button class="filter-btn evolve" onclick="filterRoster('evolve',this)">EVOLVE</button>
+      <button class="filter-btn thunder" onclick="filterRoster('thunder',this)">WCW THUNDER</button>
       <button class="filter-btn aew" onclick="filterRoster('aew',this)">AEW</button>
       <button class="filter-btn tna" onclick="filterRoster('tna',this)">TNA</button>
     </div>
@@ -1911,6 +2022,9 @@ body {
             <option value="raw">RAW</option>
             <option value="smackdown">SmackDown</option>
             <option value="roh">ROH</option>
+            <option value="nxt">NXT</option>
+            <option value="evolve">Evolve</option>
+            <option value="thunder">WCW Thunder</option>
             <option value="aew">AEW Dynamite</option>
             <option value="tna">TNA iMPACT!</option>
             <option value="all">All Brands (PLE)</option>
@@ -1971,6 +2085,9 @@ body {
             <option value="raw">RAW</option>
             <option value="smackdown">SmackDown</option>
             <option value="roh">ROH</option>
+            <option value="nxt">NXT</option>
+            <option value="evolve">Evolve</option>
+            <option value="thunder">WCW Thunder</option>
             <option value="aew">AEW Dynamite</option>
             <option value="tna">TNA iMPACT!</option>
           </select>
@@ -2032,6 +2149,9 @@ body {
             <option value="raw">RAW</option>
             <option value="smackdown">SmackDown</option>
             <option value="roh">ROH</option>
+            <option value="nxt">NXT</option>
+            <option value="evolve">Evolve</option>
+            <option value="thunder">WCW Thunder</option>
             <option value="aew">AEW Dynamite</option>
             <option value="tna">TNA iMPACT!</option>
           </select>
@@ -2102,6 +2222,9 @@ body {
             <option value="raw">RAW</option>
             <option value="smackdown">SmackDown</option>
             <option value="roh">ROH</option>
+            <option value="nxt">NXT</option>
+            <option value="evolve">Evolve</option>
+            <option value="thunder">WCW Thunder</option>
             <option value="aew">AEW Dynamite</option>
             <option value="tna">TNA iMPACT!</option>
             <option value="all">All Brands</option>
@@ -2159,6 +2282,9 @@ body {
             <option value="raw">RAW</option>
             <option value="sd">SmackDown</option>
             <option value="roh">ROH</option>
+            <option value="nxt">NXT</option>
+            <option value="evolve">Evolve</option>
+            <option value="thunder">WCW Thunder</option>
             <option value="aew">AEW Dynamite</option>
             <option value="tna">TNA iMPACT!</option>
             <option value="all">All Brands</option>
@@ -2208,6 +2334,9 @@ body {
             <option value="raw">RAW</option>
             <option value="smackdown">SmackDown</option>
             <option value="roh">ROH</option>
+            <option value="nxt">NXT</option>
+            <option value="evolve">Evolve</option>
+            <option value="thunder">WCW Thunder</option>
             <option value="aew">AEW Dynamite</option>
             <option value="tna">TNA iMPACT!</option>
           </select>
@@ -2561,11 +2690,17 @@ async function loadAll() {
   document.getElementById('show-raw-count').textContent = allSuperstars.filter(s=>s.brand_id==='raw').length;
   document.getElementById('show-sd-count').textContent  = allSuperstars.filter(s=>s.brand_id==='smackdown').length;
   document.getElementById('show-roh-count').textContent = allSuperstars.filter(s=>s.brand_id==='roh').length;
+  document.getElementById('show-nxt-count').textContent = allSuperstars.filter(s=>s.brand_id==='nxt').length;
+  document.getElementById('show-evolve-count').textContent = allSuperstars.filter(s=>s.brand_id==='evolve').length;
+  document.getElementById('show-thunder-count').textContent = allSuperstars.filter(s=>s.brand_id==='thunder').length;
   document.getElementById('show-aew-count').textContent = allSuperstars.filter(s=>s.brand_id==='aew').length;
   document.getElementById('show-tna-count').textContent = allSuperstars.filter(s=>s.brand_id==='tna').length;
   document.getElementById('show-raw-eps').textContent   = allEpisodes.filter(e=>e.brand_id==='raw').length;
   document.getElementById('show-sd-eps').textContent    = allEpisodes.filter(e=>e.brand_id==='smackdown').length;
   document.getElementById('show-roh-eps').textContent   = allEpisodes.filter(e=>e.brand_id==='roh').length;
+  document.getElementById('show-nxt-eps').textContent   = allEpisodes.filter(e=>e.brand_id==='nxt').length;
+  document.getElementById('show-evolve-eps').textContent   = allEpisodes.filter(e=>e.brand_id==='evolve').length;
+  document.getElementById('show-thunder-eps').textContent   = allEpisodes.filter(e=>e.brand_id==='thunder').length;
   document.getElementById('show-aew-eps').textContent   = allEpisodes.filter(e=>e.brand_id==='aew').length;
   document.getElementById('show-tna-eps').textContent   = allEpisodes.filter(e=>e.brand_id==='tna').length;
 
@@ -2584,6 +2719,9 @@ function renderDashboard() {
   renderChampGrid('aew',       'dash-aew-champs');
   renderChampGrid('tna',       'dash-tna-champs');
   renderChampGrid('roh',       'dash-roh-champs');
+  renderChampGrid('nxt',       'dash-nxt-champs');
+  renderChampGrid('evolve',    'dash-evolve-champs');
+  renderChampGrid('thunder',   'dash-thunder-champs');
 
   // Story of the Week — pull from latest published edition
   const latestEdition = allEditions.length ? allEditions[allEditions.length - 1] : null;
@@ -2689,7 +2827,7 @@ function champCard(c, brand) {
   const champImg = !c.is_vacant && c.current_champion_name
     ? 'images/superstarimages/' + c.current_champion_name.toLowerCase().replace(/\./g,'').replace(/'/g,'').replace(/\s+/g,'-') + '.png'
     : null;
-  const brandColor = brand === 'raw' ? 'var(--raw)' : brand === 'smackdown' ? 'var(--sd)' : brand === 'aew' ? 'var(--aew)' : brand === 'tna' ? 'var(--tna)' : 'var(--roh)';
+  const brandColor = brand === 'raw' ? 'var(--raw)' : brand === 'smackdown' ? 'var(--sd)' : brand === 'aew' ? 'var(--aew)' : brand === 'tna' ? 'var(--tna)' : brand === 'nxt' ? 'var(--nxt)' : brand === 'evolve' ? 'var(--evolve)' : brand === 'thunder' ? 'var(--thunder)' : 'var(--roh)';
 
   if (!c.is_vacant && c.current_champion_name && champImg) {
     return `<div class="champ-card ${brand}" style="padding:0;overflow:hidden">
@@ -2843,7 +2981,7 @@ async function showProfile(id) {
 
   const faction = allFactions.find(f => f.id === s.faction_id);
   const brand = s.brand_id;
-  const brandColor = brand === 'raw' ? 'var(--raw)' : brand === 'smackdown' ? 'var(--sd)' : brand === 'aew' ? 'var(--aew)' : brand === 'tna' ? 'var(--tna)' : 'var(--roh)';
+  const brandColor = brand === 'raw' ? 'var(--raw)' : brand === 'smackdown' ? 'var(--sd)' : brand === 'aew' ? 'var(--aew)' : brand === 'tna' ? 'var(--tna)' : brand === 'nxt' ? 'var(--nxt)' : brand === 'evolve' ? 'var(--evolve)' : brand === 'thunder' ? 'var(--thunder)' : 'var(--roh)';
 
   // Get last 5 matches for this superstar
   const myMatches = allMatches.filter(m =>
@@ -3010,7 +3148,7 @@ function renderEpisodes() {
       </div>`;
 
     // Show brands in order RAW, SmackDown, ROH
-    const brandOrder = ['raw', 'smackdown', 'roh', 'aew', 'tna'];
+    const brandOrder = ['raw', 'smackdown', 'roh', 'aew', 'tna', 'nxt', 'evolve', 'thunder'];
     for (const brand of brandOrder) {
       const brandEps = byBrand[brand];
       if (!brandEps) continue;
@@ -3020,7 +3158,7 @@ function renderEpisodes() {
 
       for (const ep of brandEps) {
         const epBc = ep.brand_id === 'smackdown' ? 'sd' : ep.brand_id === 'all' ? 'roh' : ep.brand_id || (brand === 'smackdown' ? 'sd' : brand);
-        const epBrandColor = ep.brand_id === 'all' ? 'linear-gradient(90deg,var(--raw),var(--sd),var(--roh),var(--aew),var(--tna))' : `var(--${epBc})`;
+        const epBrandColor = ep.brand_id === 'all' ? 'linear-gradient(90deg,var(--raw),var(--sd),var(--roh),var(--aew),var(--tna),var(--nxt),var(--evolve),var(--thunder))' : `var(--${epBc})`;
         const epBrandColorSolid = ep.brand_id === 'all' ? 'var(--roh)' : `var(--${epBc})`;
         const epMatches = allMatches.filter(m => m.episode_id === ep.id);
         const matchCount = epMatches.length;
@@ -3067,7 +3205,7 @@ function openEpisodePanel(episodeId) {
   if (!ep) return;
 
   const bc = ep.brand_id === 'smackdown' ? 'sd' : ep.brand_id === 'all' ? 'roh' : ep.brand_id;
-  const brandColor = ep.brand_id === 'all' ? 'linear-gradient(90deg,var(--raw),var(--sd),var(--roh),var(--aew),var(--tna))' : `var(--${bc})`;
+  const brandColor = ep.brand_id === 'all' ? 'linear-gradient(90deg,var(--raw),var(--sd),var(--roh),var(--aew),var(--tna),var(--nxt),var(--evolve),var(--thunder))' : `var(--${bc})`;
   const brandColorSolid = ep.brand_id === 'all' ? 'var(--roh)' : `var(--${bc})`;
   const isPLE = ep.brand_id === 'all' || (ep.month_label && !ep.month_label.startsWith('Month'));
   const epMatches = allMatches.filter(m => m.episode_id === ep.id)
@@ -3157,6 +3295,9 @@ function openEpisodeEditModal(episodeId) {
               <option value="raw" ${ep.brand_id==='raw'?'selected':''}>RAW</option>
               <option value="smackdown" ${ep.brand_id==='smackdown'?'selected':''}>SmackDown</option>
               <option value="roh" ${ep.brand_id==='roh'?'selected':''}>ROH</option>
+              <option value="nxt" ${ep.brand_id==='nxt'?'selected':''}>NXT</option>
+              <option value="evolve" ${ep.brand_id==='evolve'?'selected':''}>Evolve</option>
+              <option value="thunder" ${ep.brand_id==='thunder'?'selected':''}>WCW Thunder</option>
               <option value="aew" ${ep.brand_id==='aew'?'selected':''}>AEW Dynamite</option>
               <option value="tna" ${ep.brand_id==='tna'?'selected':''}>TNA iMPACT!</option>
               <option value="all" ${ep.brand_id==='all'?'selected':''}>All Brands (PLE)</option>
@@ -4073,6 +4214,9 @@ function openEditPPVModal(id) {
               <option value="raw">RAW</option>
               <option value="smackdown">SmackDown</option>
               <option value="roh">ROH</option>
+              <option value="nxt">NXT</option>
+              <option value="evolve">Evolve</option>
+              <option value="thunder">WCW Thunder</option>
               <option value="aew">AEW Dynamite</option>
               <option value="tna">TNA iMPACT!</option>
               <option value="all">All Brands</option>
@@ -4429,6 +4573,15 @@ function renderDraftSetup() {
               <input type="checkbox" id="draft-roh" value="roh" style="accent-color:var(--roh)"> <span style="color:var(--roh);font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px">ROH</span>
             </label>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px">
+              <input type="checkbox" id="draft-nxt" value="nxt" style="accent-color:var(--nxt)"> <span style="color:var(--nxt);font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px">NXT</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px">
+              <input type="checkbox" id="draft-evolve" value="evolve" style="accent-color:var(--evolve)"> <span style="color:var(--evolve);font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px">EVOLVE</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px">
+              <input type="checkbox" id="draft-thunder" value="thunder" style="accent-color:var(--thunder)"> <span style="color:var(--thunder);font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px">WCW THUNDER</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px">
               <input type="checkbox" id="draft-aew" value="aew" style="accent-color:var(--aew)"> <span style="color:var(--aew);font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px">AEW</span>
             </label>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px">
@@ -4491,7 +4644,7 @@ function deselectAllPool() {
 }
 
 async function startDraft() {
-  const brands = ['raw','smackdown','roh','aew','tna'].filter(b => document.getElementById(`draft-${b}`)?.checked);
+  const brands = ['raw','smackdown','roh','aew','tna','nxt','evolve','thunder'].filter(b => document.getElementById(`draft-${b}`)?.checked);
   if (brands.length < 2) { toast('Select at least 2 brands', 'error'); return; }
 
   const mode = document.querySelector('input[name="draft-mode"]:checked').value;
@@ -4654,6 +4807,9 @@ function brandName(id) {
   if (id === 'raw') return 'RAW';
   if (id === 'smackdown') return 'SmackDown';
   if (id === 'roh') return 'Ring of Honor';
+  if (id === 'nxt') return 'NXT';
+  if (id === 'evolve') return 'Evolve';
+  if (id === 'thunder') return 'WCW Thunder';
   if (id === 'aew') return 'AEW Dynamite';
   if (id === 'tna') return 'TNA iMPACT!';
   return id || '—';
@@ -5091,6 +5247,9 @@ async function renderChampionships() {
     { id: 'aew',       label: 'AEW DYNAMITE',      color: 'var(--aew)', pillClass: 'pill-aew' },
     { id: 'tna',       label: 'TNA IMPACT!',       color: 'var(--tna)', pillClass: 'pill-tna' },
     { id: 'roh',       label: 'RING OF HONOR',     color: 'var(--roh)', pillClass: 'pill-roh' },
+    { id: 'nxt',       label: 'NXT',               color: 'var(--nxt)', pillClass: 'pill-nxt' },
+    { id: 'evolve',    label: 'EVOLVE',            color: 'var(--evolve)', pillClass: 'pill-evolve' },
+    { id: 'thunder',   label: 'WCW THUNDER',       color: 'var(--thunder)', pillClass: 'pill-thunder' },
   ];
 
   let html = '';
