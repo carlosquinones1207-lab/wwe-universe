@@ -2203,6 +2203,15 @@ body {
         <label class="form-label">Bio Notes</label>
         <textarea class="form-textarea" id="edit-ss-bio" placeholder="Character notes, career highlights..."></textarea>
       </div>
+      <div class="form-group">
+        <label class="form-label">Tournament Stakes</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;margin-bottom:6px">
+          <input type="checkbox" id="edit-ss-cl-immune"> 🏆 Champions League winner (full relegation immunity this year)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+          <input type="checkbox" id="edit-ss-trophy-shot"> 🎟 Trophy winner (guaranteed Tier 1 title shot pending)
+        </label>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-danger btn-sm" onclick="deleteSuperstar()">Delete</button>
@@ -5064,6 +5073,8 @@ function editSuperstar(id) {
   document.getElementById('edit-ss-faction').value  = faction ? faction.name : '';
   document.getElementById('edit-ss-status').value   = s.status || 'Active';
   document.getElementById('edit-ss-bio').value      = s.bio_note || '';
+  document.getElementById('edit-ss-cl-immune').checked = !!s.cl_immune;
+  document.getElementById('edit-ss-trophy-shot').checked = !!s.trophy_shot_pending;
   openModal('modal-edit-superstar');
 }
 
@@ -5078,6 +5089,8 @@ async function saveEditSuperstar() {
   const factionName= document.getElementById('edit-ss-faction').value.trim();
   const status    = document.getElementById('edit-ss-status').value;
   const bio       = document.getElementById('edit-ss-bio').value.trim();
+  const clImmune  = document.getElementById('edit-ss-cl-immune').checked;
+  const trophyShot= document.getElementById('edit-ss-trophy-shot').checked;
 
   if (!name) { toast('Name is required', 'error'); return; }
 
@@ -5099,6 +5112,8 @@ async function saveEditSuperstar() {
     birthplace: birthplace || null,
     bio_note: bio || null,
     status,
+    cl_immune: clImmune,
+    trophy_shot_pending: trophyShot,
   }).eq('id', id);
 
   if (error) { toast('Error: ' + error.message, 'error'); return; }
@@ -5288,8 +5303,9 @@ function renderShowStandingsCard(show) {
     const winPct = matches > 0 ? wins / matches : 0;
     const eligible = matches >= show.match_floor;
     const champTitle = allChampionships.find(c => c.brand_id === show.id && !c.is_vacant && c.current_champion_name === s.name);
-    const immune = !!(champTitle && (champTitle.defenses || 0) >= 6);
-    return { ...s, matches, winPct, eligible, immune, champTitle };
+    const titleImmune = !!(champTitle && (champTitle.defenses || 0) >= 6);
+    const immune = titleImmune || !!s.cl_immune;
+    return { ...s, matches, winPct, eligible, immune, champTitle, titleImmune };
   });
 
   const eligible = withRecord.filter(s => s.eligible).sort((a, b) => b.winPct - a.winPct || b.wins - a.wins);
@@ -5310,7 +5326,9 @@ function renderShowStandingsCard(show) {
     if (s === relCandidate) tags += '<span class="badge" style="background:rgba(239,68,68,.2);color:#ef4444;margin-left:6px">⬇ RELEGATION</span>';
     if (playoffPool.includes(s)) tags += '<span class="badge" style="background:rgba(59,130,246,.15);color:#3b82f6;margin-left:6px">Playoff Pool</span>';
     if (survivalPool.includes(s)) tags += '<span class="badge" style="background:rgba(249,115,22,.15);color:#f97316;margin-left:6px">Survival Pool</span>';
-    if (s.immune) tags += '<span class="badge" style="background:rgba(200,160,0,.2);color:var(--roh);margin-left:6px">🛡 Immune (Champion)</span>';
+    if (s.titleImmune) tags += '<span class="badge" style="background:rgba(200,160,0,.2);color:var(--roh);margin-left:6px">🛡 Immune (6+ Defenses)</span>';
+    if (s.cl_immune) tags += '<span class="badge" style="background:rgba(200,160,0,.2);color:var(--roh);margin-left:6px">🏆 Immune (Champions League)</span>';
+    if (s.trophy_shot_pending) tags += '<span class="badge" style="background:rgba(0,184,169,.2);color:var(--evolve);margin-left:6px">🎟 Title Shot Pending (Trophy)</span>';
     const eligTxt = s.eligible ? '' : `<div style="color:var(--muted);font-size:11px">needs ${show.match_floor} matches (has ${s.matches})</div>`;
     return `<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
       <div style="display:flex;justify-content:space-between;align-items:center">
